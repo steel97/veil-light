@@ -10,7 +10,7 @@ export interface WatchOnlyTx {
 
     n: number, // txindex
     // ringct
-    ringct_index?: bigint//
+    ringct_index?: number//
     pubkey?: string,
     pubkey_hash?: string, // CBitcoinAddress
     // stealth

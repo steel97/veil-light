@@ -29,7 +29,7 @@ export default class LightwalletAddress {
         const importResponse = await RpcRequester.send<ImportLightwalletAddressResponse>({
             jsonrpc: "1.0",
             method: "importlightwalletaddress",
-            params: [scanKeyPriv, spendKeyPub, BigInt(0)]
+            params: [scanKeyPriv, spendKeyPub, 0]
         });
 
         let address = "";
