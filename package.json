@@ -1,6 +1,6 @@
 {
   "name": "veil-light",
-  "version": "0.1.3",
+  "version": "0.1.6",
   "description": "Veil coin library which goal is to allow easy usage of lightwallet api",
   "type": "module",
   "main": "dist/index.js",
@@ -32,12 +32,12 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "bip32": "^3.0.1",
     "bip39": "^3.0.4",
     "bitcoinjs-lib": "^6.0.2",
     "ecpair": "^2.0.1",
     "fast-sha256": "^1.3.0",
-    "node-fetch": "^3.2.10",
     "randombytes": "^2.1.0",
     "veil-secp256k1": "^2.3.34"
   }
