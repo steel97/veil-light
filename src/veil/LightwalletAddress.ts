@@ -20,6 +20,7 @@ export default class LightwalletAddress {
     private _transactionsCache?: Array<CWatchOnlyTxWithIndex>;
     private _keyImageCache?: Array<KeyImageResult>;
     private _syncWithNodeCalled = false;
+    private _syncStatus: "failed" | "synced" | "scanning" = "scanning";
 
     public constructor(lwAccount: LightwalletAccount, account: BIP32Interface, index: number) {
         this._lwAccount = lwAccount;
@@ -34,14 +35,14 @@ export default class LightwalletAddress {
         );
     }
 
-    public syncWithNode = async () => {
+    public syncWithNode = async (fromBlock = 0) => {
         const scanKeyPriv = this.getScanKey().privateKey?.toString("hex");
         const spendKeyPub = this.getSpendKey().publicKey.toString("hex");
 
         const importResponse = await RpcRequester.send<ImportLightwalletAddressResponse>({
             jsonrpc: "1.0",
             method: "importlightwalletaddress",
-            params: [scanKeyPriv, spendKeyPub, 0]
+            params: [scanKeyPriv, spendKeyPub, fromBlock]
         });
 
         let address = "";
@@ -52,6 +53,8 @@ export default class LightwalletAddress {
                 method: "getwatchonlystatus",
                 params: [scanKeyPriv, spendKeyPub]
             });
+
+            this._syncStatus = importStatus.result.status;
 
             address = importStatus.result.stealth_address;
         } else {
@@ -147,5 +150,9 @@ export default class LightwalletAddress {
 
     public getStringAddress() {
         return this._stealth.toBech32(this._lwAccount.getWallet().getChainParams());
+    }
+
+    public getSyncStatus() {
+        return this._syncStatus;
     }
 }
