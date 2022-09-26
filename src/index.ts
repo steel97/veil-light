@@ -20,4 +20,5 @@ export { LightwalletTransactionBuilder };
 export { Lightwallet, LightwalletAccount, LightwalletAddress };
 export { CWatchOnlyTx, CWatchOnlyTxWithIndex, CLightWalletAnonOutputData };
 // rpc
-export { RpcRequester, PublishTransactionResult };
+export { RpcRequester };
+export type { PublishTransactionResult };
