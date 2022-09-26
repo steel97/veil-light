@@ -1,5 +1,5 @@
 import { BufferReader } from "bitcoinjs-lib/src/bufferutils";
-import { COIN } from "../Chainparams";
+import { Chainparams } from "../Chainparams";
 import CTxOutRingCT from "./CTxOutRingCT";
 
 export enum WatchOnlyTxType {
@@ -58,13 +58,13 @@ export default class CWatchOnlyTx {
         return this._ringctout!.getKeyImage();
     }
 
-    public getAmount() {
+    public getAmount(chainParams: Chainparams) {
         // return ct or ringct
         if (this._ringctout == null) {
             return 0;
         }
 
-        return (Number((this._ringctout!.getAmount() ?? 0n)) / Number(COIN));
+        return (Number((this._ringctout!.getAmount() ?? 0n)) / Number(chainParams.COIN));
     }
 
     public getRingCtOut() { return this._ringctout; }

@@ -10,6 +10,7 @@ import CLightWalletAnonOutputData from './veil/tx/CLightWalletAnonOutputData';
 import CWatchOnlyTx from './veil/tx/CWatchOnlyTx';
 import CWatchOnlyTxWithIndex from './veil/tx/CWatchOnlyTxWithIndex';
 import PublishTransactionResult from './models/PublishTransactionResult';
+import RpcRequester from './veil/RpcRequester';
 
 // address
 export { CVeilAddress, CVeilStealthAddress };
@@ -19,4 +20,4 @@ export { LightwalletTransactionBuilder };
 export { Lightwallet, LightwalletAccount, LightwalletAddress };
 export { CWatchOnlyTx, CWatchOnlyTxWithIndex, CLightWalletAnonOutputData };
 // rpc
-export { PublishTransactionResult };
+export { RpcRequester, PublishTransactionResult };

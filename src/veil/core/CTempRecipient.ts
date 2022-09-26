@@ -1,6 +1,6 @@
 import { BoolPass } from "../../core/JsRef";
-import CTxDestination from "./CTxDestination";
 import { OutputTypes } from "./OutputTypes";
+import CTxDestination from "./CTxDestination";
 
 export default class CTempRecipient {
     public setAmount(nValue: number) {

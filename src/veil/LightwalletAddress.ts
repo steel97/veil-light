@@ -5,14 +5,17 @@ import { ImportLightwalletAddressResponse } from "../models/rpc/lightwallet/Impo
 import { CheckKeyImagesResponse, KeyImageResult } from "../models/rpc/wallet/CheckKeyImagesResponse";
 import CWatchOnlyTxWithIndex from "./tx/CWatchOnlyTxWithIndex";
 import RpcRequester from "./RpcRequester";
+import LightwalletAccount from "./LightwalletAccount";
 
 export default class LightwalletAddress {
+    private _lwAccount: LightwalletAccount;
     private _addressKey: BIP32Interface;
     private _transactionsCache?: Array<CWatchOnlyTxWithIndex>;
     private _keyImageCache?: Array<KeyImageResult>;
     private _syncWithNodeCalled = false;
 
-    public constructor(account: BIP32Interface, index: number) {
+    public constructor(lwAccount: LightwalletAccount, account: BIP32Interface, index: number) {
+        this._lwAccount = lwAccount;
         this._addressKey = account.deriveHardened(index);
     }
 
@@ -110,7 +113,7 @@ export default class LightwalletAddress {
 
         // compute balance
         let amount = 0;
-        res.forEach(utx => amount += utx.getAmount());
+        res.forEach(utx => amount += utx.getAmount(this._lwAccount.getWallet().getChainParams()));
         return amount;
     }
 

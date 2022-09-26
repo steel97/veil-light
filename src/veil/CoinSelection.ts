@@ -1,6 +1,12 @@
-import { CENT } from "./Chainparams";
+import { Chainparams } from "./Chainparams";
 
-//! target minimum change amount
-export const MIN_CHANGE = CENT;
-//! final minimum change amount after paying for fees
-export const MIN_FINAL_CHANGE = MIN_CHANGE / 2n;
+export default class CoinSelection {
+    constructor(params: Chainparams) {
+        this.MIN_CHANGE = params.CENT;
+        this.MIN_FINAL_CHANGE = this.MIN_CHANGE / 2n;
+    }
+    //! target minimum change amount
+    public MIN_CHANGE: bigint = 0n;
+    //! final minimum change amount after paying for fees
+    public MIN_FINAL_CHANGE: bigint = 0n;
+}

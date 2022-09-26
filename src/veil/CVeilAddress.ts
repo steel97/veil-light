@@ -1,5 +1,5 @@
 import { fromBase58Check, toOutputScript } from "bitcoinjs-lib/src/address";
-import { bech32Prefixes, veilNetwork } from "./Chainparams";
+import { Chainparams } from "./Chainparams";
 import { bech32 } from "bech32";
 import CVeilStealthAddress from "./CVeilStealthAddress";
 
@@ -31,13 +31,13 @@ export default class CVeilAddress {
         return this._stealthAddress.isValid;
     }
 
-    public static parse(address: string) {
+    public static parse(chainParams: Chainparams, address: string) {
         let scriptPubKey: Buffer | undefined;
         let stealthAddress: CVeilStealthAddress | undefined;
         let valid = false;
 
         try {
-            scriptPubKey = toOutputScript(address, veilNetwork);
+            scriptPubKey = toOutputScript(address, chainParams.veilNetwork);
             valid = true;
         } catch {
             try {
@@ -52,7 +52,7 @@ export default class CVeilAddress {
                     throw new Error("Invalid address");
                 }*/
                 const data = bech32.decode(address, 128);
-                if (data.prefix != bech32Prefixes.STEALTH_ADDRESS) {
+                if (data.prefix != chainParams.bech32Prefixes.STEALTH_ADDRESS) {
                     throw new Error("Invalid address");
                 }
                 const res = bech32.fromWords(data.words);

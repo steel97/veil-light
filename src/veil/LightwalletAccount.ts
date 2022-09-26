@@ -1,5 +1,4 @@
 import { BIP32Interface } from "bip32";
-import { COIN_DIGITS, nRingCTAccount } from "./Chainparams";
 import Lightwallet from "./Lightwallet";
 import LightwalletAddress from "./LightwalletAddress";
 
@@ -24,14 +23,14 @@ export default class LightwalletAccount {
         this._wallet = wallet;
         this._walletAccount = this._wallet.getKeyCoin().deriveHardened(accountId);
 
-        this._keyMasterAnon = this._walletAccount.deriveHardened(nRingCTAccount);
+        this._keyMasterAnon = this._walletAccount.deriveHardened(this._wallet.getChainParams().nRingCTAccount);
         this._vDefaultAccount = this._keyMasterAnon.deriveHardened(1);
         this._vStealthAccount = this._keyMasterAnon.deriveHardened(2);
         this._vChangeAccount = this._keyMasterAnon.deriveHardened(3);
     }
 
     public getAddress(fromAccount: AccountType, index = 1) {
-        const address = new LightwalletAddress(this.getAccount(fromAccount), index);
+        const address = new LightwalletAddress(this, this.getAccount(fromAccount), index);
         return address;
     }
 
@@ -55,6 +54,8 @@ export default class LightwalletAccount {
 
     public async getBalanceFormatted(input: Array<LightwalletAddress>) {
         const res = await this.getBalanceRaw(input);
-        return res.toFixed(COIN_DIGITS);
+        return res.toFixed(this._wallet.getChainParams().COIN_DIGITS);
     }
+
+    public getWallet() { return this._wallet; }
 }

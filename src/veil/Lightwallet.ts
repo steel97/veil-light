@@ -1,6 +1,6 @@
 import { mnemonicToSeed, generateMnemonic } from "bip39";
 import { BIP32Factory, BIP32Interface } from "bip32";
-import { nBIP44ID } from "./Chainparams";
+import { Chainparams } from "./Chainparams";
 import { GetAnonOutputsResponse } from "../models/rpc/lightwallet/GetAnonOutputsResponse";
 import { SendRawTransactionResponse } from "../models/rpc/wallet/SendRawTransactionResponse";
 import LightwalletTransactionBuilder from "./LightwalletTransactionBuilder";
@@ -12,23 +12,26 @@ const bip32 = BIP32Factory(ecc);
 const BIP44_PURPOSE = 0x8000002C;
 
 export default class Lightwallet {
-    static fromMnemonic = async (mnemonic: Array<string>) => {
+    static fromMnemonic = async (chainParams: Chainparams, mnemonic: Array<string>) => {
         const mnemonicSeed = await mnemonicToSeed(mnemonic.join(" "));
-        return new Lightwallet(mnemonicSeed);
+        return new Lightwallet(chainParams, mnemonicSeed);
     }
 
     static generateMnemonic() { return generateMnemonic(256).split(" "); }
 
+    private _chainParams: Chainparams;
     private _keyMaster: BIP32Interface;
     private _keyPurpose: BIP32Interface;
     private _keyCoin: BIP32Interface;
 
-    constructor(mnemonicSeed: Buffer) {
+    constructor(chainParams: Chainparams, mnemonicSeed: Buffer) {
+        this._chainParams = chainParams;
         this._keyMaster = bip32.fromSeed(mnemonicSeed);
         this._keyPurpose = this._keyMaster.derive(BIP44_PURPOSE);
-        this._keyCoin = this._keyPurpose.derive(nBIP44ID);
+        this._keyCoin = this._keyPurpose.derive(chainParams.nBIP44ID);
     }
 
+    public getChainParams() { return this._chainParams; }
     public getKeyCoin() { return this._keyCoin; }
 
     public static async getAnonOutputs(vtxoutCount: number, ringSize = 5) {

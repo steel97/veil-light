@@ -1,6 +1,6 @@
 import { hash160 } from "bitcoinjs-lib/src/crypto"
 import { BufferWriter } from "bitcoinjs-lib/src/bufferutils";
-import { CENT, COIN, minRelayTxFee } from "./Chainparams";
+import { Chainparams } from "./Chainparams"; // CENT, COIN, minRelayTxFee
 import { OutputTypes } from "./core/OutputTypes";
 import { Hash } from "fast-sha256";
 import { ECPairFactory, ECPairAPI } from "ecpair";
@@ -8,7 +8,7 @@ import { opcodetype } from "./core/CScript";
 import { BoolPass, NumPass } from "../core/JsRef";
 import { createArrayBuf, resize, resizeBuf, resizeNumArr } from "../core/Array";
 import { getVirtualTransactionSize } from "./Policy";
-import { MIN_FINAL_CHANGE } from "./CoinSelection";
+import CoinSelection from "./CoinSelection";
 import { AnonOutput } from "../models/rpc/lightwallet/GetAnonOutputsResponse";
 import { putVarInt } from "../core/BitcoinJsFix";
 import CWatchOnlyTxWithIndex from "./tx/CWatchOnlyTxWithIndex";
@@ -74,7 +74,7 @@ export default class LightwalletTransactionBuilder {
         return res;
     }
     // returns txHex
-    public static buildLightWalletTransaction(address: LightwalletAddress, amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>) {
+    public static buildLightWalletTransaction(chainParams: Chainparams, address: LightwalletAddress, amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>) {
         const vAnonTxes = Array<CWatchOnlyTxWithIndex>();
         const vStealthTxes = Array<CWatchOnlyTxWithIndex>();
 
@@ -89,7 +89,7 @@ export default class LightwalletTransactionBuilder {
         }
 
         if (vAnonTxes.length > 0) {
-            return this.buildLightWalletRingCTTransaction(address, amount * Number(COIN), recipientAddress, vAnonTxes, vDummyOutputs);
+            return this.buildLightWalletRingCTTransaction(chainParams, address, amount * Number(chainParams.COIN), recipientAddress, vAnonTxes, vDummyOutputs);
         } else if (vStealthTxes.length > 0) {
             // return BuildLightWalletStealthTransaction(args, vStealthTxes, txHex, errorMsg);
         } else {
@@ -99,7 +99,9 @@ export default class LightwalletTransactionBuilder {
     }
 
     // returns txHex
-    private static buildLightWalletRingCTTransaction(address: LightwalletAddress, nValueOut: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, ringSize = 5) {
+    private static buildLightWalletRingCTTransaction(chainParams: Chainparams, address: LightwalletAddress, nValueOut: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, ringSize = 5) {
+        const coinSelection = new CoinSelection(chainParams);
+
         const spendKey = address.getSpendKey();
         const scanKey = address.getScanKey();
 
@@ -126,7 +128,7 @@ export default class LightwalletTransactionBuilder {
 
         const vectorTxesWithAmountSet = vSpendableTx;//this.getAmountAndBlindForUnspentTx(vSpendableTx, spend_secret!, scan_secret!, spend_pubkey);
 
-        if (!this.checkAmounts(nValueOut, vectorTxesWithAmountSet)) {
+        if (!this.checkAmounts(chainParams, nValueOut, vectorTxesWithAmountSet)) {
             throw new Error("Amount is over the balance of this address");
         }
 
@@ -244,7 +246,7 @@ export default class LightwalletTransactionBuilder {
 
         // Build the change recipient
         const nChange = nTempChange;//CAmount        
-        if (!this.buildChangeData(vecSend, nChangePosInOutRef, nFeeRetRef, nChange, destChange)) {//coincontrol.destChange(addrChange), errorMsg
+        if (!this.buildChangeData(chainParams, vecSend, nChangePosInOutRef, nFeeRetRef, nChange, destChange)) {//coincontrol.destChange(addrChange), errorMsg
             throw new Error("Failed BuildChangeData");
         }
 
@@ -305,7 +307,7 @@ export default class LightwalletTransactionBuilder {
 
         // TODO, have the server give us the feerate per Byte, when asking for txes
         // TODO, for now set to CENT
-        nFeeNeeded = Number(CENT);
+        nFeeNeeded = Number(chainParams.CENT);
 
         if (nFeeRetRef.num >= nFeeNeeded) {
             // Reduce fee to only the needed amount if possible. This
@@ -338,7 +340,7 @@ export default class LightwalletTransactionBuilder {
         if (nChangePosInOutRef.num != -1 && nSubtractFeeFromAmount == 0) {
             const r = vecSend[nChangePosInOutRef.num];
             const additionalFeeNeeded = nFeeNeeded - nFeeRetRef.num;
-            if ((r.nAmount ?? 0) >= Number(MIN_FINAL_CHANGE) + additionalFeeNeeded) {
+            if ((r.nAmount ?? 0) >= Number(coinSelection.MIN_FINAL_CHANGE) + additionalFeeNeeded) {
                 if (r.nAmount == undefined) {
                     r.nAmount = 0;
                 }
@@ -427,12 +429,12 @@ export default class LightwalletTransactionBuilder {
         }
     }
 
-    private static checkAmounts(nValueOut: number, vSpendableTx: Array<CWatchOnlyTx>) {
+    private static checkAmounts(chainParams: Chainparams, nValueOut: number, vSpendableTx: Array<CWatchOnlyTx>) {
         let nSum: number = 0;
         for (const tx of vSpendableTx) {
             nSum += Number(tx.getRingCtOut()?.getAmount());
 
-            if ((nValueOut + Number(CENT)) < nSum) {
+            if ((nValueOut + Number(chainParams.CENT)) < nSum) {
                 return true;
             }
         }
@@ -567,7 +569,7 @@ export default class LightwalletTransactionBuilder {
         return true;
     }
 
-    private static buildChangeData(vecSend: Array<CTempRecipient>, nChangePositionOut: NumPass, nFeeReturned: NumPass, nChange: number, changeDestination: CTxDestination) {
+    private static buildChangeData(chainParams: Chainparams, vecSend: Array<CTempRecipient>, nChangePositionOut: NumPass, nFeeReturned: NumPass, nChange: number, changeDestination: CTxDestination) {
 
         // Insert a sender-owned 0 value output that becomes the change output if needed
         // Fill an output to ourself
@@ -624,7 +626,7 @@ export default class LightwalletTransactionBuilder {
             //return false;
         }
 
-        if (nChange > minRelayTxFee.getFee(2048)) {
+        if (nChange > chainParams.minRelayTxFee!.getFee(2048)) {
             recipient.setAmount(nChange);
         } else {
             recipient.setAmount(0);
