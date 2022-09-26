@@ -1,4 +1,4 @@
-import { mnemonicToSeed, generateMnemonic } from "bip39";
+import { mnemonicToSeed, generateMnemonic, validateMnemonic } from "bip39";
 import { BIP32Factory, BIP32Interface } from "bip32";
 import { Chainparams } from "./Chainparams";
 import { GetAnonOutputsResponse } from "../models/rpc/lightwallet/GetAnonOutputsResponse";
@@ -17,7 +17,8 @@ export default class Lightwallet {
         return new Lightwallet(chainParams, mnemonicSeed);
     }
 
-    static generateMnemonic() { return generateMnemonic(256).split(" "); }
+    static generateMnemonic(size = 256) { return generateMnemonic(size).split(" "); }
+    static verifyMnemonic(mnemonic: string, wordlist: Array<string> | undefined = undefined) { return validateMnemonic(mnemonic, wordlist) }
 
     private _chainParams: Chainparams;
     private _keyMaster: BIP32Interface;

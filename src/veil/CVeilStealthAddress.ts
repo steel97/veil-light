@@ -1,3 +1,6 @@
+import { Chainparams } from "./Chainparams";
+import { bech32 } from "bech32";
+
 const MAX_STEALTH_NARRATION_SIZE = 48;
 const MIN_STEALTH_RAW_SIZE = 1 + 33 + 1 + 33 + 1 + 1;
 const EC_SECRET_SIZE = 32;
@@ -24,9 +27,11 @@ export default class CVeilStealthAddress {
     public spend_pubkey: Buffer | undefined;
     public spend_secret_id: Buffer | undefined;
 
-    public fromData(scan_secret: Buffer, spend_secret_id: Buffer, number_bits: number) {
+    public fromData(scan_secret: Buffer, scan_pub: Buffer, spend_secret_id: Buffer, spend_pub: Buffer, number_bits: number) {
         this.scan_secret = scan_secret;
+        this.scan_pubkey = scan_pub;
         this.spend_secret_id = spend_secret_id;
+        this.spend_pubkey = spend_pub;
         this.prefix.number_bits = number_bits;
         this.isValid = true;
     }
@@ -70,5 +75,35 @@ export default class CVeilStealthAddress {
         //  memcpy(&prefix.bitfield, p, nPrefixBytes);
 
         this.isValid = true;
+    }
+
+    toBech32(chain: Chainparams) {
+        const buffer = Buffer.alloc(512);
+
+        let index = 0;
+        buffer.writeUInt8(this.options, index++);
+
+        buffer.set(this.scan_pubkey!, index);
+        index += EC_COMPRESSED_SIZE;
+
+        const spend_pubkeys = 1;
+        buffer.writeUInt8(spend_pubkeys, index++); //const spend_pubkeys = buffer[index++];
+
+
+        buffer.set(this.spend_pubkey!, index);
+        index += EC_COMPRESSED_SIZE * spend_pubkeys;
+
+        buffer.writeUInt8(this.number_signatures, index++);
+        buffer.writeUInt8(this.prefix.number_bits, index++);
+
+        const nPrefixBytes = Math.ceil(this.prefix.number_bits / 8.0);
+        if (nPrefixBytes >= 1) {
+            buffer.writeUInt32BE(this.prefix.bitfield, index);
+            index += 4;
+        }
+
+        const words = bech32.toWords(buffer.slice(0, index));
+        const data = bech32.encode(chain.bech32Prefixes.STEALTH_ADDRESS, words, 128);
+        return data;
     }
 }

@@ -1,3 +1,4 @@
+import { hash160 } from "bitcoinjs-lib/src/crypto"
 import { BIP32Interface } from "bip32";
 import { GetWatchOnlyStatusResponse } from "../models/rpc/lightwallet/GetWatchOnlyStatusResponse";
 import { GetWatchOnlyTxesResponse } from "../models/rpc/lightwallet/GetWatchOnlyTxesResponse";
@@ -9,10 +10,13 @@ import LightwalletAccount from "./LightwalletAccount";
 import LightwalletTransactionBuilder from "./LightwalletTransactionBuilder";
 import Lightwallet from "./Lightwallet";
 import CVeilAddress from "./CVeilAddress";
+import CVeilStealthAddress from "./CVeilStealthAddress";
+import Stealth from "./Stealth";
 
 export default class LightwalletAddress {
     private _lwAccount: LightwalletAccount;
     private _addressKey: BIP32Interface;
+    private _stealth: CVeilStealthAddress;
     private _transactionsCache?: Array<CWatchOnlyTxWithIndex>;
     private _keyImageCache?: Array<KeyImageResult>;
     private _syncWithNodeCalled = false;
@@ -20,6 +24,14 @@ export default class LightwalletAddress {
     public constructor(lwAccount: LightwalletAccount, account: BIP32Interface, index: number) {
         this._lwAccount = lwAccount;
         this._addressKey = account.deriveHardened(index);
+        this._stealth = new CVeilStealthAddress();
+        this._stealth.fromData(
+            this.getScanKey().privateKey!,
+            Stealth.getPubKey(this.getScanKey().privateKey!),
+            hash160(this.getSpendKey().privateKey!),
+            Stealth.getPubKey(this.getSpendKey().privateKey!),
+            0
+        );
     }
 
     public syncWithNode = async () => {
@@ -131,5 +143,9 @@ export default class LightwalletAddress {
             recipientAddress,
             vSpendableTx,
             vDummyOutputs);
+    }
+
+    public getStringAddress() {
+        return this._stealth.toBech32(this._lwAccount.getWallet().getChainParams());
     }
 }

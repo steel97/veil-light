@@ -11,7 +11,7 @@ import CWatchOnlyTx from './veil/tx/CWatchOnlyTx';
 import CWatchOnlyTxWithIndex from './veil/tx/CWatchOnlyTxWithIndex';
 import PublishTransactionResult from './models/PublishTransactionResult';
 import RpcRequester from './veil/RpcRequester';
-import { mainNetParams } from './veil/Chainparams';
+import { mainNetParams, Chainparams } from './veil/Chainparams';
 
 // address
 export { CVeilAddress, CVeilStealthAddress };
@@ -24,4 +24,5 @@ export { CWatchOnlyTx, CWatchOnlyTxWithIndex, CLightWalletAnonOutputData };
 export { RpcRequester };
 export type { PublishTransactionResult };
 // misc
+export type { Chainparams }
 export { mainNetParams }
