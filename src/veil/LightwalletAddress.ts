@@ -117,6 +117,7 @@ export default class LightwalletAddress {
         let i = 0;
         this._transactionsCache.forEach(tx => {
             const txInfo = this._keyImageCache?.find(a => a.txid == tx.getId());
+            console.log(txInfo);
             if (!(txInfo?.spent ?? true))
                 res.push(tx);
             i++;
@@ -133,7 +134,7 @@ export default class LightwalletAddress {
         const res: Array<CWatchOnlyTxWithIndex> = [];
         let i = 0;
         this._transactionsCache.forEach(tx => {
-            const txInfo = this._keyImageCache?.at(i);
+            const txInfo = this._keyImageCache?.find(a => a.txid == tx.getId());
             if (!(txInfo?.spentinmempool ?? true))
                 res.push(tx);
             i++;
