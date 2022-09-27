@@ -138,7 +138,7 @@ export default class LightwalletTransactionBuilder {
 
         // Get change address - this is the same address we are sending from
         const sxAddr = new CVeilStealthAddress();
-        sxAddr.fromData(scan_secret!, Stealth.getPubKey(sxAddr.scan_secret!), hash160(spend_secret!), Stealth.getPubKey(spend_secret!), 0);
+        sxAddr.fromData(scan_secret!, Stealth.getPubKey(scan_secret!), hash160(spend_secret!), Stealth.getPubKey(spend_secret!), 0);
 
         //sxAddr.scan_pubkey = Stealth.getPubKey(sxAddr.scan_secret!);
         //sxAddr.spend_pubkey = Stealth.getPubKey(spend_secret!); // TO-DO spend_secret.IsValid()
