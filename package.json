@@ -1,6 +1,6 @@
 {
   "name": "veil-light",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Veil coin library which goal is to allow easy usage of lightwallet api",
   "type": "module",
   "main": "dist/index.js",
