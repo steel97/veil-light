@@ -12,8 +12,8 @@ const bip32 = BIP32Factory(ecc);
 const BIP44_PURPOSE = 0x8000002C;
 
 export default class Lightwallet {
-    static fromMnemonic = async (chainParams: Chainparams, mnemonic: Array<string>) => {
-        const mnemonicSeed = await mnemonicToSeed(mnemonic.join(" "));
+    static fromMnemonic = async (chainParams: Chainparams, mnemonic: Array<string>, password: string | undefined = undefined) => {
+        const mnemonicSeed = await mnemonicToSeed(mnemonic.join(" "), password);
         return new Lightwallet(chainParams, mnemonicSeed);
     }
 
