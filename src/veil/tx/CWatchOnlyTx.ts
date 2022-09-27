@@ -71,13 +71,13 @@ export default class CWatchOnlyTx {
 
     public getId() {
         if (this._txHashHex == null) {
-            this._txHashHex = this._txHash?.toString("hex");
+            this._txHashHex = this._txHash?.reverse().toString("hex");
         }
 
         return this._txHashHex;
     }
 
     public getTxHash() {
-        return this._txHash?.reverse();
+        return this._txHash;
     }
 }
