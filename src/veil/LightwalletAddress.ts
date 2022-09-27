@@ -116,8 +116,25 @@ export default class LightwalletAddress {
         const res: Array<CWatchOnlyTxWithIndex> = [];
         let i = 0;
         this._transactionsCache.forEach(tx => {
-            const txInfo = this._keyImageCache?.at(i);
+            const txInfo = this._keyImageCache?.find(a => a.txid == tx.getId());
             if (!(txInfo?.spent ?? true))
+                res.push(tx);
+            i++;
+        });
+
+        return res;
+    }
+    public getSpentOutputsInMemoryPool = async () => {
+        if (this._transactionsCache == null) {
+            await this.fetchTxes();
+            if (this._transactionsCache == null) return [];
+        }
+
+        const res: Array<CWatchOnlyTxWithIndex> = [];
+        let i = 0;
+        this._transactionsCache.forEach(tx => {
+            const txInfo = this._keyImageCache?.at(i);
+            if (!(txInfo?.spentinmempool ?? true))
                 res.push(tx);
             i++;
         });
@@ -136,6 +153,18 @@ export default class LightwalletAddress {
         // compute balance
         let amount = 0;
         res.forEach(utx => amount += utx.getAmount(this._lwAccount.getWallet().getChainParams()));
+        return amount;
+    }
+
+    public getBalanceLocked = async () => {
+        const res = await this.getSpentOutputsInMemoryPool();
+        if (res.length == 0) return 0;
+
+        // compute balance
+        let amount = 0;
+        res.forEach(utx => {
+            amount += utx.getAmount(this._lwAccount.getWallet().getChainParams())
+        });
         return amount;
     }
 
