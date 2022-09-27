@@ -4,6 +4,7 @@ import CWatchOnlyTx from "./CWatchOnlyTx";
 export default class CWatchOnlyTxWithIndex extends CWatchOnlyTx {
     private _ringctIndex: number | undefined = undefined;
     public raw: string = "";
+    public remoteTxHash: string = "";
 
     constructor() {
         super();

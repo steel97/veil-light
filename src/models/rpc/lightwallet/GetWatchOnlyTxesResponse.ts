@@ -7,6 +7,7 @@ export interface WatchOnlyTx {
     spent?: boolean,
     spent_in?: string,
     dbindex: number,
+    tx_hash: string,
 
     n: number, // txindex
     // ringct
