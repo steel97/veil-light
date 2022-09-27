@@ -127,7 +127,7 @@ export default class LightwalletAddress {
         let i = 0;
         this._transactionsCache.forEach(tx => {
             const txInfo = this._keyImageCache?.find(a => a.txid == tx.getId());
-            if (!(txInfo?.spent ?? true) || !(txInfo?.spentinmempool ?? false)) {
+            if (!(txInfo?.spent ?? true) && !(txInfo?.spentinmempool ?? false)) {
                 res.push(tx);
             }
             i++;
