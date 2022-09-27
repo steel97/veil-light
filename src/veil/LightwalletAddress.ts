@@ -67,7 +67,7 @@ export default class LightwalletAddress {
     }
 
     public fetchTxes = async () => {
-        if (!this._syncWithNodeCalled) {
+        if (!this._syncWithNodeCalled || this._syncStatus != "synced") {
             await this.syncWithNode();
         }
 
