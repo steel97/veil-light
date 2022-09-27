@@ -57,7 +57,7 @@ export default class LightwalletAccount {
         return res.toFixed(this._wallet.getChainParams().COIN_DIGITS);
     }
 
-    public async formatAmount(amount: number) {
+    public formatAmount(amount: number) {
         return amount.toFixed(this._wallet.getChainParams().COIN_DIGITS);
     }
 
