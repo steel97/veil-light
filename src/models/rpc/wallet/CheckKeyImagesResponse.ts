@@ -5,7 +5,7 @@ export interface KeyImageResult {
     msg: string,
     spent: boolean,
     spentinmempool: boolean,
-    txid: string
+    txid: string | undefined
 }
 
 export interface CheckKeyImagesResponse extends RpcResponse {

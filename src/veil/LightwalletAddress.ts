@@ -91,7 +91,8 @@ export default class LightwalletAddress {
         // get keyimages
         const keyimages: Array<string> = [];
         txes.forEach(tx => {
-            keyimages.push(tx.getKeyImage()?.toString("hex") ?? "");
+            const ki = tx.getKeyImage()?.toString("hex") ?? "";
+            keyimages.push(ki);
         });
         // get keyimages info
         const kiResponse = await RpcRequester.send<CheckKeyImagesResponse>({
@@ -101,8 +102,17 @@ export default class LightwalletAddress {
         });
         if (kiResponse.error != null) return null;
 
-        this._keyImageCache = kiResponse.result;
-        this._transactionsCache = txes;
+        // fix key images response
+        const newKeyImageRes: Array<KeyImageResult> = [];
+        for (let i = 0; i < kiResponse.result.length; i++) {
+            const tx = txes[i];
+            const keyImageRes = kiResponse.result[i];
+            keyImageRes.txid = tx.getId();
+            newKeyImageRes.push(keyImageRes);
+        }
+
+        this._keyImageCache = newKeyImageRes;
+        this._transactionsCache = txes.slice();
 
         return this._transactionsCache;
     }
@@ -117,9 +127,9 @@ export default class LightwalletAddress {
         let i = 0;
         this._transactionsCache.forEach(tx => {
             const txInfo = this._keyImageCache?.find(a => a.txid == tx.getId());
-            console.log(txInfo);
-            if (!(txInfo?.spent ?? true))
+            if (!(txInfo?.spent ?? true) && !(txInfo?.spentinmempool ?? true)) {
                 res.push(tx);
+            }
             i++;
         });
 
@@ -135,7 +145,7 @@ export default class LightwalletAddress {
         let i = 0;
         this._transactionsCache.forEach(tx => {
             const txInfo = this._keyImageCache?.find(a => a.txid == tx.getId());
-            if (!(txInfo?.spentinmempool ?? true))
+            if ((txInfo?.spentinmempool ?? false))
                 res.push(tx);
             i++;
         });

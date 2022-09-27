@@ -251,7 +251,7 @@ export default class LightwalletTransactionBuilder {
         }
 
         const nRemainder = vSelectedTxes.length % nInputsPerSig;
-        const nTxRingSigs = Math.round(vSelectedTxes.length / nInputsPerSig) + (nRemainder == 0 ? 0 : 1);
+        const nTxRingSigs = Math.floor(vSelectedTxes.length / nInputsPerSig + (nRemainder == 0 ? 0 : 1));
 
         let nRemainingInputs = vSelectedTxes.length;//size_t
 
