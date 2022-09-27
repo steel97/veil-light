@@ -78,6 +78,6 @@ export default class CWatchOnlyTx {
     }
 
     public getTxHash() {
-        return this._txHash;
+        return this._txHash?.reverse();
     }
 }

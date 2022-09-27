@@ -83,7 +83,6 @@ export default class LightwalletAddress {
         const txes: Array<CWatchOnlyTxWithIndex> = [];
         for (const tx of response.result.anon) {
             const txObj = new CWatchOnlyTxWithIndex();
-            txObj.remoteTxHash = tx.tx_hash;
             txObj.deserialize(Buffer.from(tx.raw, "hex"), tx.raw);
             txObj.getRingCtOut()?.decodeTx(spendKey, scanKey)
             txes.push(txObj);
