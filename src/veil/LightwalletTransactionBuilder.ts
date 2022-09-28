@@ -321,7 +321,7 @@ export default class LightwalletTransactionBuilder {
         const outFeeWriter = new BufferWriter(outFeeVdata);
         outFeeWriter.writeUInt8(DataOutputTypes.DO_FEE);
         outFeeWriter.writeSlice(Buffer.alloc(8, 0));
-        const outFee = new CTxOutData(outFeeWriter.buffer.slice(0, outFeeWriter.offset));
+        const outFee = new CTxOutData(outFeeWriter.buffer.subarray(0, outFeeWriter.offset));
         txNew.vpout.push(outFee);
 
         // Add CT DATA to txNew
@@ -422,15 +422,15 @@ export default class LightwalletTransactionBuilder {
         //Add actual fee to CT Fee output
         const vpTx1 = txNew.vpout[0]! as CTxOutData;
         let vData = vpTx1.vData!;
-        vData = vData.slice(0, 1); // carefull!
+        vData = vData.subarray(0, 1); // carefull!
         const tempBuf = Buffer.alloc(16);
         const ndWriter = new BufferWriter(tempBuf);
         //ndWriter.writeVarInt(nFeeRetRef.num);
         ndWriter.writeSlice(putVarInt(nFeeRetRef.num));
-        //vData = ndWriter.buffer.slice(0, ndWriter.offset);//end ok
+        //vData = ndWriter.buffer.subarray(0, ndWriter.offset);//end ok
         const targetData = Buffer.alloc(vData.length + ndWriter.offset);
         targetData.set(vData, 0);
-        targetData.set(ndWriter.buffer.slice(0, ndWriter.offset), 1);
+        targetData.set(ndWriter.buffer.subarray(0, ndWriter.offset), 1);
         vData = targetData;
         vpTx1.vData = vData;
 
@@ -613,7 +613,7 @@ export default class LightwalletTransactionBuilder {
         recipient.fChange = true;
         //sEphem = ECPair.makeRandom().privateKey!;//MakeNewKey
         //recipient.sEphem.MakeNewKey(true);
-        recipient.sEphem = this.makeNewKey(true);// ECPair.makeRandom({ compressed: true }).privateKey!.slice(0);
+        recipient.sEphem = this.makeNewKey(true);// ECPair.makeRandom({ compressed: true }).privateKey!.subarray(0);
 
         recipient.address = changeDestination;
 
@@ -694,7 +694,7 @@ export default class LightwalletTransactionBuilder {
         writer.writeSlice(keyId); // 20 bytes
         writer.writeUInt8(opcodetype.OP_EQUALVERIFY);
         writer.writeUInt8(opcodetype.OP_CHECKSIG);
-        return writer.buffer.slice(0, writer.offset);;
+        return writer.buffer.subarray(0, writer.offset);;
     }
 
     private static setStealthMask(nBits: number /*uint8_t */) //uint32_t
@@ -798,13 +798,13 @@ export default class LightwalletTransactionBuilder {
     private static setCTOutVData(txout: CTxOutCT, pkEphem: Buffer, nStealthPrefix: number) {
         const vData = Buffer.alloc(nStealthPrefix > 0 ? 38 : 33);
         const writer = new BufferWriter(vData);
-        writer.writeSlice(pkEphem.slice(0, 33));
+        writer.writeSlice(pkEphem.subarray(0, 33));
 
         if (nStealthPrefix > 0) {
             writer.writeUInt8(DataOutputTypes.DO_STEALTH_PREFIX);
             writer.writeUInt32(nStealthPrefix);
         }
-        txout.vData = writer.buffer.slice(0, writer.offset);
+        txout.vData = writer.buffer.subarray(0, writer.offset);
     }
 
     private static createOutputRingCT(cmpPubKeyTo: Buffer, nStealthPrefix: number, pkEphem: Buffer) {
@@ -1086,14 +1086,6 @@ export default class LightwalletTransactionBuilder {
         return true;
     }
 
-    //
-    //
-    //
-    // TO-DO FIX
-    //
-    //
-    //ArrangeBlinds
-    //PlaceRealOutputs
     private static lightWalletAddRealOutputs(txNew: CMutableTransaction, vSelectedTxes: Array<CWatchOnlyTxWithIndex>, vInputBlinds: Array<Buffer>, vSecretColumns: Array<number>, vMI: Array<Array<Array<number>>>) {
         const setHave: Array<number> = [];//sort        
         let nTotalInputs = 0;
@@ -1141,7 +1133,7 @@ export default class LightwalletTransactionBuilder {
                             /*for (let ctr = 0; ctr < 32; ctr++) {
                                 vInputBlinds[l][k * 32] = pk![i];
                             }*/
-                            //vInputBlinds[l].set(pk!.slice(0, 32), k * 32);//1,33?
+                            //vInputBlinds[l].set(pk!.subarray(0, 32), k * 32);//1,33?
                             vInputBlinds[l].set(vSelectedTx.getRingCtOut()?.getBlind()!, k * 32);
 
                             const index = vSelectedTx.getRingCtIndex()!;
@@ -1194,7 +1186,7 @@ export default class LightwalletTransactionBuilder {
                     //writer.writeVarInt(vMI[l][k][i]);
                     writer.writeSlice(putVarInt(vMI[l][k][i]));
                 }
-            const vPubkeyMatrixIndices = writer.buffer.slice(0, writer.offset);
+            const vPubkeyMatrixIndices = writer.buffer.subarray(0, writer.offset);
 
             const vKeyImages = Buffer.alloc(33 * nSigInputs.num);
 
@@ -1269,7 +1261,7 @@ export default class LightwalletTransactionBuilder {
                     const message = Buffer.from(r.sNarration ?? "");
                     const mlen = message?.length ?? 0;
                     const nRangeProofLen = 5134;
-                    pvRangeproof = pvRangeproof.slice(0, nRangeProofLen);
+                    pvRangeproof = pvRangeproof.subarray(0, nRangeProofLen);
 
                     const min_value: NumPass = { num: 0 };
                     const ct_exponent: NumPass = { num: 2 };
@@ -1430,7 +1422,7 @@ export default class LightwalletTransactionBuilder {
 
                         vpsk[k] = vsk[k];
 
-                        vpBlinds.push(vInputBlinds[l].slice(k * 32, k * 32 + 32));//vInputBlinds[l][k * 32]);
+                        vpBlinds.push(vInputBlinds[l].subarray(k * 32, k * 32 + 32));//vInputBlinds[l][k * 32]);
 
                         let fFound = false;
                         for (const tx of vSelectedTx) {
@@ -1569,7 +1561,7 @@ export default class LightwalletTransactionBuilder {
             }
 
             const hashOutputs = txNew.getOutputsHash();
-            const res = ecc.generateMlsag(vKeyImages, vDL, vDL.slice(32), randSeed, hashOutputs, nCols.num, nRows, vSecretColumns[l], vpsk.length, vpsk, vm);
+            const res = ecc.generateMlsag(vKeyImages, vDL, vDL.subarray(32), randSeed, hashOutputs, nCols.num, nRows, vSecretColumns[l], vpsk.length, vpsk, vm);
             /*
             secp256k1_generate_mlsag(& vKeyImages[0], & vDL[0], & vDL[32],
                 randSeed, hashOutputs, nCols, nRows, vSecretColumns[l], vpsk.length,
@@ -1583,7 +1575,7 @@ export default class LightwalletTransactionBuilder {
             vDL.set(res.PS, 32);
 
             // Validate the mlsag
-            rv = ecc.verifyMlsag(hashOutputs, nCols.num, nRows, vm, vKeyImages, vDL, vDL.slice(32));
+            rv = ecc.verifyMlsag(hashOutputs, nCols.num, nRows, vm, vKeyImages, vDL, vDL.subarray(32));
             if (0 != rv) {
                 throw new FailedToGenerateMlsag("Failed to generate mlsag on initial generation");
             }

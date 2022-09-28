@@ -13,9 +13,9 @@ export default class CAnonOutput {
         this._pubkey = reader.readVarSlice();
         this._commitment = reader.readSlice(33);
         this._outpoint = new COutPoint();
-        const read = this._outpoint.deserialize(buffer.slice(reader.offset));
+        const read = this._outpoint.deserialize(buffer.subarray(reader.offset));
 
-        const reader2 = new BufferReader(buffer.slice(reader.offset + read));
+        const reader2 = new BufferReader(buffer.subarray(reader.offset + read));
         this._nBlockHeight = reader2.readInt32();
         this._nCompromised = reader2.readUInt8();
     }

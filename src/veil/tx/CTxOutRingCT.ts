@@ -21,7 +21,7 @@ export default class CTxOutRingCT {
         this._commitment = reader?.readSlice(33);
         this._vData = reader?.readVarSlice();
         this._vRangeproof = reader?.readVarSlice();
-        this._vchEphemPK = this._vData?.slice(0, 33);
+        this._vchEphemPK = this._vData?.subarray(0, 33);
     }
 
     public decodeTx(spendKey: BIP32Interface, scanKey: BIP32Interface) {

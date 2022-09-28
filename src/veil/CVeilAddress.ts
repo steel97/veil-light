@@ -42,7 +42,7 @@ export default class CVeilAddress {
         } catch {
             try {
                 const b58d = fromBase58Check(address);
-                const addrHash = b58d.hash.slice(1); // size of array base58Prefixes.STEALTH_ADDRESS
+                const addrHash = b58d.hash.subarray(1); // size of array base58Prefixes.STEALTH_ADDRESS
                 stealthAddress = new CVeilStealthAddress();
                 stealthAddress.fromBuffer(addrHash);
             } catch {

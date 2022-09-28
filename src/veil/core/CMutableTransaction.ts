@@ -17,7 +17,7 @@ export default class CMutableTransaction {
         const writer = new BufferWriter(tbuf);
         //writer.writeUInt32(hashType);
         writer.writeSlice(buf);
-        const rbuf = writer.buffer.slice(0, writer.offset);
+        const rbuf = writer.buffer.subarray(0, writer.offset);
         const hasher = new Hash();
         hasher.update(rbuf, rbuf.length);
         const hsh = hasher.digest();
@@ -94,7 +94,7 @@ export default class CMutableTransaction {
             s << txin.scriptWitness.stack;
     }
         */
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 }
 

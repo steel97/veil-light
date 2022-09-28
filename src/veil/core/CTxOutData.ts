@@ -14,6 +14,6 @@ export default class CTxOutData extends CTxOutBase {
         const buf = Buffer.alloc(this.vData?.length! + 512);
         const writer = new BufferWriter(buf);
         writer.writeVarSlice(this.vData!);
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 }

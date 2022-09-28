@@ -19,6 +19,6 @@ export default class CTxOutRingCTOr extends CTxOutCT {
         writer.writeVarSlice(this.vData!);
         writer.writeVarSlice(this.vRangeproof!);
 
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 }

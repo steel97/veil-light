@@ -18,6 +18,6 @@ export default class CTxOutStandard extends CTxOutBase {
         writer.writeUInt64(this.nValue);
         writer.writeVarInt(this.scriptPubKey.length);
         writer.writeSlice(this.scriptPubKey!);
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 }

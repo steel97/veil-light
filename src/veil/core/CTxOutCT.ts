@@ -22,6 +22,6 @@ export default class CTxOutCT extends CTxOutBase {
         writer.writeSlice(this.scriptPubKey!);
         writer.writeVarSlice(this.vRangeproof!);
 
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 }

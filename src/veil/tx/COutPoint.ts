@@ -19,7 +19,7 @@ export default class COutPoint {
         const writer = new BufferWriter(tmpBuf);
         writer.writeSlice(this.hash!);
         writer.writeUInt32(this.n!);
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 
     public isAnonInput() {

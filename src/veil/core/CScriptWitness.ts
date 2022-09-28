@@ -29,6 +29,6 @@ export default class CScriptWitness {
         Stack.Add(stackEntry);
     }
         */
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 };

@@ -46,7 +46,7 @@ export default class CVeilStealthAddress {
         let index = 0;
         this.options = buffer[index++];
 
-        this.scan_pubkey = buffer.slice(index, index + EC_COMPRESSED_SIZE);
+        this.scan_pubkey = buffer.subarray(index, index + EC_COMPRESSED_SIZE);
 
         index += EC_COMPRESSED_SIZE;
         var spend_pubkeys = buffer[index++];
@@ -55,7 +55,7 @@ export default class CVeilStealthAddress {
             return;
         }
 
-        this.spend_pubkey = buffer.slice(index, index + EC_COMPRESSED_SIZE * spend_pubkeys);
+        this.spend_pubkey = buffer.subarray(index, index + EC_COMPRESSED_SIZE * spend_pubkeys);
 
 
         index += EC_COMPRESSED_SIZE * spend_pubkeys;
@@ -69,7 +69,7 @@ export default class CVeilStealthAddress {
             return;
 
         if (nPrefixBytes >= 1) {
-            const dv = new DataView(new Uint8Array(buffer.slice(index, index + nPrefixBytes)).buffer);
+            const dv = new DataView(new Uint8Array(buffer.subarray(index, index + nPrefixBytes)).buffer);
             this.prefix.bitfield = dv.getUint32(0);
         }
         //  memcpy(&prefix.bitfield, p, nPrefixBytes);
@@ -102,7 +102,7 @@ export default class CVeilStealthAddress {
             index += 4;
         }
 
-        const words = bech32.toWords(buffer.slice(0, index));
+        const words = bech32.toWords(buffer.subarray(0, index));
         const data = bech32.encode(chain.bech32Prefixes.STEALTH_ADDRESS, words, 128);
         return data;
     }

@@ -55,6 +55,6 @@ export default class CTxIn {
             //scriptData.stack
             writer.writeSlice(this.scriptData.serialize())
         }
-        return writer.buffer.slice(0, writer.offset);
+        return writer.buffer.subarray(0, writer.offset);
     }
 }
