@@ -65,6 +65,8 @@ import NoPubKeyFound from "../models/errors/NoPubKeyFound";
 import FailedToPrepareMlsag from "../models/errors/FailedToPrepareMlsag";
 import PedersenBlindSumFailed from "../models/errors/PedersenBlindSumFailed";
 import FailedToGenerateMlsag from "../models/errors/FailedToGenerateMlsag";
+import BuildTransactionResult from "../models/BuildTransactionResult";
+import UnimplementedException from "../models/errors/UnimplementedException";
 
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 
@@ -127,6 +129,7 @@ export default class LightwalletTransactionBuilder {
             return this.buildLightWalletRingCTTransaction(chainParams, address, amount * Number(chainParams.COIN), recipientAddress, vAnonTxes, vDummyOutputs);
         } else if (vStealthTxes.length > 0) {
             // return BuildLightWalletStealthTransaction(args, vStealthTxes, txHex, errorMsg);
+            throw new UnimplementedException("Not implemented (yes?)");
         } else {
             throw new NoAnonTxes("No Anon or Stealth txes given to build transaction")
         }
@@ -135,6 +138,11 @@ export default class LightwalletTransactionBuilder {
 
     // returns txHex
     private static buildLightWalletRingCTTransaction(chainParams: Chainparams, address: LightwalletAddress, nValueOut: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, ringSize = 5) {
+        const response: BuildTransactionResult = {
+            fee: 0,
+            txid: undefined
+        };
+
         const coinSelection = new CoinSelection(chainParams);
 
         const spendKey = address.getSpendKey();
@@ -419,6 +427,8 @@ export default class LightwalletTransactionBuilder {
             throw new UpdateChangeOutputCommitmentFailed("Failed LightWalletUpdateChangeOutputCommitment");
         }
 
+        response.fee = nFeeRetRef.num;
+
         //Add actual fee to CT Fee output
         const vpTx1 = txNew.vpout[0]! as CTxOutData;
         let vData = vpTx1.vData!;
@@ -447,7 +457,9 @@ export default class LightwalletTransactionBuilder {
             throw new SignAndVerifyFailed("Failed LightWalletSignAndVerifyTx");
         }
 
-        return txNew.encode().toString("hex");//EncodeHexTx(*txRef);
+        const txId = txNew.encode().toString("hex");//EncodeHexTx(*txRef);
+        response.txid = txId;
+        return response;
     }
 
     // return outputType and destination
@@ -487,7 +499,7 @@ export default class LightwalletTransactionBuilder {
              if (currenttx.getType() == WatchOnlyTxType.ANON) {
                  vchEphemPK = currenttx.getRingCtOut()?.getVCHEphemPK()!;
              } else {
-                 throw new Error("Not implemented");
+                  throw new UnimplementedException("Not implemented (yes?)");
              }
  
              // Regenerate nonce
@@ -502,7 +514,7 @@ export default class LightwalletTransactionBuilder {
                  currenttx.nAmount = amountOut;
                  vTxes.emplace_back(currenttx);
              } else {
-                 throw new Error("Not implemented");
+                  throw new UnimplementedException("Not implemented (yes?)");
              }
              
          }
@@ -534,7 +546,7 @@ export default class LightwalletTransactionBuilder {
             }
             return destinationKeyPriv;
         } else {
-            throw new Error("Not implemented");
+            throw new UnimplementedException("Not implemented (yes?)");
         }
     }
 

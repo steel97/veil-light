@@ -13,6 +13,7 @@ import PublishTransactionResult from './models/PublishTransactionResult';
 import RpcRequester from './veil/RpcRequester';
 import { GetBlockchainInfo } from './models/rpc/node/GetBlockchainInfo'
 import { mainNetParams, Chainparams } from './veil/Chainparams';
+import BuildTransactionResult from './models/BuildTransactionResult';
 
 // address
 export { CVeilAddress, CVeilStealthAddress };
@@ -21,6 +22,7 @@ export { LightwalletTransactionBuilder };
 // lightwallet
 export { Lightwallet, LightwalletAccount, AccountType, LightwalletAddress };
 export { CWatchOnlyTx, CWatchOnlyTxWithIndex, CLightWalletAnonOutputData };
+export type { BuildTransactionResult };
 // rpc
 export { RpcRequester };
 export type { PublishTransactionResult };
