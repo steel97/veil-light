@@ -30,6 +30,41 @@ import CWatchOnlyTx, { WatchOnlyTxType } from "./tx/CWatchOnlyTx";
 import CVeilStealthAddress from "./CVeilStealthAddress";
 import * as ecc from "veil-secp256k1";
 import * as randomBytes from "randombytes";
+import NoAnonTxes from "../models/errors/NoAnonTxes";
+import AmountIsOverBalance from "../models/errors/AmountIsOverBalance";
+import InvalidChangeAddress from "../models/errors/InvalidChangeAddress";
+import TxAtLeastOneRecipient from "../models/errors/TxAtLeaseOneRecipient";
+import AmountsMustNotBeNegative from "../models/errors/AmountsMustNotBeNegative";
+import RingSizeOutOfRange from "../models/errors/RingSizeOutOfRange";
+import InputsPerSigIsOutOfRange from "../models/errors/InputsPerSigIsOutOfRange";
+import RecipientDataBuildFailed from "../models/errors/RecipientDataBuildFailed";
+import ChangeDataBuildFailed from "../models/errors/ChangeDataBuildFailed";
+import LightWalletAddCTDataFailed from "../models/errors/LightWalletAddCTDataFailed";
+import LightWalletAddOutputsFailed from "../models/errors/LightWalletAddOutputsFailed";
+import TxFeeAndChangeCalcFailed from "../models/errors/TxFeeAndChangeCalcFailed";
+import PedersenCommitFailed from "../models/errors/PedersenCommitFailed";
+import UpdateChangeOutputCommitmentFailed from "../models/errors/UpdateChangeOutputCommitmentFailed";
+import InsertKeyImagesFailed from "../models/errors/InsertKeyImagesFailed";
+import SignAndVerifyFailed from "../models/errors/SignAndVerifyFailed";
+import InvalidBasecoinAddress from "../models/errors/InvalidBasecoinAddress";
+import GetDestinationKeyForOutputFailed from "../models/errors/GetDestinationKeyForOutputFailed";
+import ReceivingPubKeyGenerationFailed from "../models/errors/ReceivingPubKeyGenerationFailed";
+import InvalidEphemeralPubKey from "../models/errors/InvalidEphemeralPubKey";
+import ChangeAddressIsNotStealth from "../models/errors/ChangeAddressIsNotStealth";
+import SelectSpendableTxForValueFailed from "../models/errors/SelectSpendableTxForValueFailed";
+import MissingEphemeralValue from "../models/errors/MissingEphemeralValue";
+import UnknownOutputType from "../models/errors/UnknownOutputType";
+import FailedToSelectRangeProofParameters from "../models/errors/FailedToSelectRangeProofParameters";
+import FailedToSignRangeProof from "../models/errors/FailedToSignRangeProof";
+import DuplicateIndexFound from "../models/errors/DuplicateIndexFound";
+import FailedToGetCTPointersForOutputType from "../models/errors/FailedToGetCTPointersForOutputType";
+import KeyImagesFailed from "../models/errors/KeyImagesFailed";
+import NoKeyFoundForIndex from "../models/errors/NoKeyFoundForIndex";
+import NoPubKeyFoundForRealOutput from "../models/errors/NoPubKeyFound";
+import NoPubKeyFound from "../models/errors/NoPubKeyFound";
+import FailedToPrepareMlsag from "../models/errors/FailedToPrepareMlsag";
+import PedersenBlindSumFailed from "../models/errors/PedersenBlindSumFailed";
+import FailedToGenerateMlsag from "../models/errors/FailedToGenerateMlsag";
 
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 
@@ -93,7 +128,7 @@ export default class LightwalletTransactionBuilder {
         } else if (vStealthTxes.length > 0) {
             // return BuildLightWalletStealthTransaction(args, vStealthTxes, txHex, errorMsg);
         } else {
-            throw new Error("No Anon or Stealth txes given to build transaction")
+            throw new NoAnonTxes("No Anon or Stealth txes given to build transaction")
         }
 
     }
@@ -129,7 +164,7 @@ export default class LightwalletTransactionBuilder {
         const vectorTxesWithAmountSet = vSpendableTx;//this.getAmountAndBlindForUnspentTx(vSpendableTx, spend_secret!, scan_secret!, spend_pubkey);
 
         if (!this.checkAmounts(chainParams, nValueOut, vectorTxesWithAmountSet)) {
-            throw new Error("Amount is over the balance of this address");
+            throw new AmountIsOverBalance("Amount is over the balance of this address");
         }
 
         // Default ringsize is 11
@@ -155,7 +190,7 @@ export default class LightwalletTransactionBuilder {
 
         const addrChange = new CVeilAddress(undefined, sxAddr, true);
         if (!addrChange.isValidStealthAddress()) {
-            throw new Error("Invalid change address")
+            throw new InvalidChangeAddress("Invalid change address")
         }
         /*
             // TODO - if we can, remove coincontrol if we don't need to use it. bypass if we can
@@ -167,7 +202,7 @@ export default class LightwalletTransactionBuilder {
         const destChange = this.getTypeOut(addrChange);
         // Check we are sending to atleast one address
         if (vecSend.length < 1) {
-            throw new Error("Transaction must have at least one recipient.")
+            throw new TxAtLeastOneRecipient("Transaction must have at least one recipient.")
         }
 
         // Get total value we are sending in vecSend
@@ -175,23 +210,23 @@ export default class LightwalletTransactionBuilder {
         for (const r of vecSend) {
             nValue += r.nAmount ?? 0;
             if (nValue < 0 || (r.nAmount ?? 0) < 0) {
-                throw new Error("Transaction amounts must not be negative");
+                throw new AmountsMustNotBeNegative("Transaction amounts must not be negative");
             }
         }
 
         // Check ringsize
         if (nRingSize < 3 || nRingSize > 32) {
-            throw new Error("Ring size out of range.");
+            throw new RingSizeOutOfRange("Ring size out of range.");
         }
 
         // Check inputspersig
         if (nInputsPerSig < 1 || nInputsPerSig > 32) {
-            throw new Error("Num inputs per signature out of range.");
+            throw new InputsPerSigIsOutOfRange("Num inputs per signature out of range.");
         }
 
         // Build the recipient data
         if (!this.buildRecipientData(vecSend)) {
-            throw new Error("Failed - buildRecipientData");
+            throw new RecipientDataBuildFailed("Failed - buildRecipientData");
         }
 
         const txNew = new CMutableTransaction();
@@ -247,7 +282,7 @@ export default class LightwalletTransactionBuilder {
         // Build the change recipient
         const nChange = nTempChange;//CAmount        
         if (!this.buildChangeData(chainParams, vecSend, nChangePosInOutRef, nFeeRetRef, nChange, destChange)) {//coincontrol.destChange(addrChange), errorMsg
-            throw new Error("Failed BuildChangeData");
+            throw new ChangeDataBuildFailed("Failed BuildChangeData");
         }
 
         const nRemainder = vSelectedTxes.length % nInputsPerSig;
@@ -291,12 +326,12 @@ export default class LightwalletTransactionBuilder {
 
         // Add CT DATA to txNew
         if (!this.lightWalletAddCTData(txNew, vecSend, nFeeRetRef, nValueOutPlainRef, nChangePosInOutRef, nSubtractFeeFromAmount)) {
-            throw new Error("Failed LightWalletAddCTData");
+            throw new LightWalletAddCTDataFailed("Failed LightWalletAddCTData");
         }
 
         // Add in real outputs
         if (!this.lightWalletAddRealOutputs(txNew, vSelectedTxes, vInputBlinds, vSecretColumns, vMI)) {
-            throw new Error("Failed LightWalletAddCTData");
+            throw new LightWalletAddOutputsFailed("Failed lightWalletAddRealOutputs");
         }
 
         // Add in dummy outputs
@@ -332,7 +367,7 @@ export default class LightwalletTransactionBuilder {
             // nFeeNeeded should not have changed
 
             if (!nSubtractFeeFromAmount || !(--nSubFeeTries)) {
-                throw new Error("Failed Transaction fee and change calculation failed");
+                throw new TxFeeAndChangeCalcFailed("Failed Transaction fee and change calculation failed");
             }
         }
 
@@ -371,7 +406,7 @@ export default class LightwalletTransactionBuilder {
 
             const res = ecc.pedersenCommit(plainCommitment, vBlindPlain, BigInt(nValueOutPlainRef.num));
             if (res == null) {
-                throw new Error("Pedersen Commit failed for plain out.")
+                throw new PedersenCommitFailed("Pedersen Commit failed for plain out.")
             }
             plainCommitment = Buffer.from(res.commitment);
             vBlindPlain = Buffer.from(res.blind);
@@ -381,7 +416,7 @@ export default class LightwalletTransactionBuilder {
         }
 
         if (!this.lightWalletUpdateChangeOutputCommitment(txNew, vecSend, nChangePosInOutRef, vpOutCommits, vpOutBlinds)) {
-            throw new Error("Failed LightWalletUpdateChangeOutputCommitment");
+            throw new UpdateChangeOutputCommitmentFailed("Failed LightWalletUpdateChangeOutputCommitment");
         }
 
         //Add actual fee to CT Fee output
@@ -405,11 +440,11 @@ export default class LightwalletTransactionBuilder {
         let vSigningKeys: Record<number, Buffer> = {};
         //std:: vector < std:: pair < int64_t, CKey >> vSigningKeys;
         if (!this.lightWalletInsertKeyImages(txNew, vSigningKeys, vSelectedTxes, vSecretColumns, vMI, spend_pubkey, scan_secret!, spend_secret!)) {
-            throw new Error("Failed LightWalletInsertKeyImages.");
+            throw new InsertKeyImagesFailed("Failed LightWalletInsertKeyImages.");
         }
 
         if (!this.lightWalletSignAndVerifyTx(txNew, vInputBlinds, vpOutCommits, vpOutBlinds, vSplitCommitBlindingKeys, vSigningKeys, vDummyOutputs, vSelectedTxes, vSecretColumns, vMI)) {
-            throw new Error("Failed LightWalletSignAndVerifyTx");
+            throw new SignAndVerifyFailed("Failed LightWalletSignAndVerifyTx");
         }
 
         return txNew.encode().toString("hex");//EncodeHexTx(*txRef);
@@ -422,7 +457,7 @@ export default class LightwalletTransactionBuilder {
         } else {
             //if (!IsValidDestination(destination)) {
             if (!address.isValid()) {
-                throw new Error("Invalid basecoin address");
+                throw new InvalidBasecoinAddress("Invalid basecoin address");
             }
 
             return new CTxDestination(address.getScriptPubKey(), undefined, OutputTypes.OUTPUT_STANDARD);
@@ -495,7 +530,7 @@ export default class LightwalletTransactionBuilder {
             const destinationKey = Stealth.getPubKey(destinationKeyPriv);
             const destIdent = hash160(destinationKey);
             if (destIdent.toString("hex") != idk.toString("hex")) {
-                throw new Error("GetDestinationKeyForOutput failed to generate correct shared secret");
+                throw new GetDestinationKeyForOutputFailed("GetDestinationKeyForOutput failed to generate correct shared secret");
             }
             return destinationKeyPriv;
         } else {
@@ -548,7 +583,7 @@ export default class LightwalletTransactionBuilder {
                     sEphem = this.makeNewKey(true);// randomBytes.default(32);
                 }
                 if (k >= nTries) {
-                    throw new Error("Could not generate receiving public key");
+                    throw new ReceivingPubKeyGenerationFailed("Could not generate receiving public key");
                 }
 
                 r.pkTo = pkSendTo;
@@ -605,7 +640,7 @@ export default class LightwalletTransactionBuilder {
             }
 
             if (k >= nTries) {
-                throw new Error("Could not generate receiving public key");
+                throw new ReceivingPubKeyGenerationFailed("Could not generate receiving public key");
             }
 
             const ecpairl = ECPair.fromPrivateKey(recipient.sEphem);
@@ -613,7 +648,7 @@ export default class LightwalletTransactionBuilder {
                 const pkEphem = ecpairl.publicKey;
                 if (pkEphem.length == 0) throw new Error();
             } catch {
-                throw new Error("Ephemeral pubkey is not valid");
+                throw new InvalidEphemeralPubKey("Ephemeral pubkey is not valid");
             }
 
             recipient.pkTo = pkSendTo;// CPubKey(pkSendTo);
@@ -622,7 +657,7 @@ export default class LightwalletTransactionBuilder {
             recipient.scriptPubKey = this.getScriptForDestinationKeyId(idTo);
 
         } else {
-            throw new Error("Change address wasn't of CStealthAddress Type");
+            throw new ChangeAddressIsNotStealth("Change address wasn't of CStealthAddress Type");
             //return false;
         }
 
@@ -733,7 +768,7 @@ export default class LightwalletTransactionBuilder {
         } else if (fMultipleInput) {
             res.nChange = tempmultipleamountchange;
         } else {
-            throw new Error("selectSpendableTxForValue failed")
+            throw new SelectSpendableTxForValueFailed("selectSpendableTxForValue failed")
         }
 
         return res;
@@ -796,7 +831,7 @@ export default class LightwalletTransactionBuilder {
 
                     if (r.fNonceSet) {
                         if (r.vData?.length ?? 0 < 33) {
-                            throw new Error(`Missing ephemeral value, vData size ${r.vData?.length}`);
+                            throw new MissingEphemeralValue(`Missing ephemeral value, vData size ${r.vData?.length}`);
                         }
                         txout.vData = r.vData;
                     } else {
@@ -806,7 +841,7 @@ export default class LightwalletTransactionBuilder {
                             pkEphem = ecpairl.publicKey;
                             if (pkEphem.length == 0) throw new Error();
                         } catch {
-                            throw new Error("Ephemeral pubkey is not valid");
+                            throw new InvalidEphemeralPubKey("Ephemeral pubkey is not valid");
                         }
                         this.setCTOutVData(txout, pkEphem, r.nStealthPrefix ?? 0);
                     }
@@ -822,13 +857,13 @@ export default class LightwalletTransactionBuilder {
                         pkEphem = ecpairl.publicKey;
                         if (pkEphem.length == 0) throw new Error();
                     } catch {
-                        throw new Error("Ephemeral pubkey is not valid");
+                        throw new InvalidEphemeralPubKey("Ephemeral pubkey is not valid");
                     }
                     txbout = this.createOutputRingCT(r.pkTo!, r.nStealthPrefix ?? 0, pkEphem);
                 }
                 break;
             default:
-                throw new Error(`Unknown output type ${r.nType}`);
+                throw new UnknownOutputType(`Unknown output type ${r.nType}`);
         }
 
         return txbout;
@@ -966,7 +1001,7 @@ export default class LightwalletTransactionBuilder {
                     //const rustsecp256k1_v0_4_1_generator *gen = rustsecp256k1_v0_4_1_generator_h;
                     const pcres = ecc.pedersenCommit(pCommitment, recipient.vBlind, BigInt(nValue!));
                     if (pcres == null) {
-                        throw new Error("Pedersen commit failed");
+                        throw new PedersenCommitFailed("Pedersen commit failed");
                     }
                     pCommitment = Buffer.from(pcres.commitment);
 
@@ -1011,7 +1046,7 @@ export default class LightwalletTransactionBuilder {
                     }; //int
 
                     if (0 != this.selectRangeProofParameters(nValue!, min_value_ref, ct_exponent_ref, ct_bits)) {
-                        throw new Error("Failed to select range proof parameters.");
+                        throw new FailedToSelectRangeProofParameters("Failed to select range proof parameters.");
                     }
 
                     if (recipient.fOverwriteRangeProofParams == true) {
@@ -1022,7 +1057,7 @@ export default class LightwalletTransactionBuilder {
 
                     const rpres = ecc.rangeproofSign(pvRangeproof, nRangeProofLen, BigInt(min_value_ref.num), pCommitment, recipient.vBlind, nonce!, ct_exponent_ref.num, ct_bits.num, BigInt(nValue!), message, mlen);
                     if (rpres == null) {
-                        throw new Error("Failed to sign range proof.");
+                        throw new FailedToSignRangeProof("Failed to sign range proof.");
                     }
 
                     pvRangeproof = Buffer.from(rpres.proof);
@@ -1041,7 +1076,7 @@ export default class LightwalletTransactionBuilder {
                     txboutRCT.commitment = pCommitment;
                     const xt = ecc.rangeProofVerify(txboutRCT.commitment, txboutRCT.vRangeproof);
                     if (xt != 1) {
-                        throw new Error("Failed to sign range proof.");
+                        throw new FailedToSignRangeProof("Failed to sign range proof.");
                     }
 
                 }
@@ -1083,7 +1118,7 @@ export default class LightwalletTransactionBuilder {
             // Placing real inputs
             {
                 if (nSigRingSize.num < 3 || nSigRingSize.num > 32) {
-                    throw new Error("Ring size out of range");
+                    throw new RingSizeOutOfRange("Ring size out of range");
                 }
 
                 vSecretColumns[l] = this.getRandInt(nSigRingSize.num);
@@ -1112,7 +1147,7 @@ export default class LightwalletTransactionBuilder {
                             const index = vSelectedTx.getRingCtIndex()!;
 
                             if (setHave.indexOf(index) !== -1) {
-                                throw new Error("Duplicate index found");
+                                throw new DuplicateIndexFound("Duplicate index found");
                             }
 
                             vMI[l][k][i] = index;
@@ -1183,7 +1218,7 @@ export default class LightwalletTransactionBuilder {
                 // Change amount may have changed
 
                 if (r.nType != OutputTypes.OUTPUT_RINGCT) {
-                    throw new Error("Change output is not RingCT type.");
+                    throw new ChangeAddressIsNotStealth("Change output is not RingCT type.");
                 }
 
                 if (r.vBlind?.length != 32) {
@@ -1199,13 +1234,13 @@ export default class LightwalletTransactionBuilder {
                     let pvRangeproof = txout.vRangeproof;//GetPRangeproof
 
                     if (!pCommitment || !pvRangeproof) {
-                        throw new Error("Unable to get CT pointers for output type");
+                        throw new FailedToGetCTPointersForOutputType("Unable to get CT pointers for output type");
                     }
 
                     let nValue = r.nAmount;
                     const pdcRes = ecc.pedersenCommit(pCommitment, r.vBlind, BigInt(nValue!));
                     if (pdcRes == null) {
-                        throw new Error("Pedersen commit failed.");
+                        throw new PedersenCommitFailed("Pedersen commit failed.");
                     }
                     pCommitment = Buffer.from(pdcRes.commitment);
                     txout.commitment = pCommitment;//!!!!
@@ -1241,7 +1276,7 @@ export default class LightwalletTransactionBuilder {
                     const ct_bits: NumPass = { num: 32 };
 
                     if (0 != this.selectRangeProofParameters(nValue!, min_value, ct_exponent, ct_bits)) {
-                        throw new Error("Failed to select range proof parameters.");
+                        throw new FailedToSelectRangeProofParameters("Failed to select range proof parameters.");
                     }
 
                     if (r.fOverwriteRangeProofParams == true) {
@@ -1252,14 +1287,14 @@ export default class LightwalletTransactionBuilder {
 
                     const rpres = ecc.rangeproofSign(pvRangeproof, nRangeProofLen, BigInt(min_value.num), pCommitment, r.vBlind, nonce!, ct_exponent.num, ct_bits.num, BigInt(nValue!), message, mlen);
                     if (rpres == null) {
-                        throw new Error("Failed to sign range proof.");
+                        throw new FailedToSignRangeProof("Failed to sign range proof.");
                     }
                     //pvRangeproof = resizeBuf(pvRangeproof, nRangeProofLen);
                     pvRangeproof = Buffer.from(rpres.proof!);
                     txout.vRangeproof = pvRangeproof;
                     const xt = ecc.rangeProofVerify(txout.commitment, txout.vRangeproof);
                     if (xt != 1) {
-                        throw new Error("Failed to sign range proof.");
+                        throw new FailedToSignRangeProof("Failed to sign range proof.");
                     }
                 }
             }
@@ -1316,13 +1351,13 @@ export default class LightwalletTransactionBuilder {
 
                 const keyDestination = this.getDestinationKeyForOutput(foundTx!, spend_secret, scan_secret, spend_pubkey);
                 if (keyDestination.length == 0)
-                    throw new Error("Failed on keyimages");
+                    throw new KeyImagesFailed("Failed on keyimages");
                 vSigningKeys[foundTx!.getRingCtIndex()!] = keyDestination;
 
                 // Keyimage is required for the tx hash
                 const keyImage = ecc.getKeyImage(foundTx!.getRingCtOut()?.getPubKey()!, keyDestination);
                 if (keyImage == null) {
-                    throw new Error("Failed to get keyimage");
+                    throw new KeyImagesFailed("Failed to get keyimage");
                 }
 
                 vKeyImages.set(keyImage, k * 33);
@@ -1389,7 +1424,7 @@ export default class LightwalletTransactionBuilder {
                         }
 
                         if (!fFoundKey) {
-                            throw new Error("No key for index");
+                            throw new NoKeyFoundForIndex("No key for index");
                             //return false;
                         }
 
@@ -1411,7 +1446,7 @@ export default class LightwalletTransactionBuilder {
                         }
 
                         if (!fFound) {
-                            throw new Error("No pubkey found for real output");
+                            throw new NoPubKeyFound("No pubkey found for real output");
                             //return false;
                         }
                     } else {
@@ -1430,7 +1465,7 @@ export default class LightwalletTransactionBuilder {
 
                         if (!fFound) {
                             //LogPrintf("Couldn't find dummy index for nIndex=%d\n", nIndex);
-                            throw new Error("No pubkey found for dummy output");
+                            throw new NoPubKeyFound("No pubkey found for dummy output");
                             //return false;
                         }
                     }
@@ -1454,7 +1489,7 @@ export default class LightwalletTransactionBuilder {
                 const rprres = ecc.prepareMlsag(vm, blindSum, vpOutCommits.length, vpOutCommits.length, /*added */vpInCommits.length, vpBlinds.length, /*end */ nCols.num, nRows, vpInCommits, vpOutCommits, vpBlinds);
                 rv = rprres != null ? 0 : 1;
                 if (0 != rv) {
-                    throw new Error("Failed to prepare mlsag");
+                    throw new FailedToPrepareMlsag("Failed to prepare mlsag");
                 }
                 vpsk[nRows - 1] = Buffer.from(rprres?.SK!); // reset to returned blindsum? from secp256k1_prepare_mlsag
                 vm = Buffer.from(rprres?.M!); // reset vm to returned m from secp256k1_prepare_mlsag
@@ -1477,7 +1512,7 @@ export default class LightwalletTransactionBuilder {
                     const res = ecc.pedersenBlindSum(vSplitCommitBlindingKeys[l], vpAllBlinds, vpAllBlinds.length, vpOutBlinds.length);
 
                     if (res == null) {
-                        throw new Error("Pedersen blind sum failed.");
+                        throw new PedersenBlindSumFailed("Pedersen blind sum failed.");
                     }
                     vSplitCommitBlindingKeys[l] = Buffer.from(res); // got from secp256k1_pedersen_blind_sum
                 } else {
@@ -1510,7 +1545,7 @@ export default class LightwalletTransactionBuilder {
                 const commres = ecc.pedersenCommit(splitInputCommit, vSplitCommitBlindingKeys[l], BigInt(nCommitValue));
 
                 if (commres == null) {
-                    throw new Error("Pedersen commit failed.");
+                    throw new PedersenCommitFailed("Pedersen commit failed.");
                 }
                 splitInputCommit = Buffer.from(commres?.commitment); // set from secp256k1_pedersen_commit
                 vSplitCommitBlindingKeys[l] = Buffer.from(commres?.blind); // set from secp256k1_pedersen_commit
@@ -1524,7 +1559,7 @@ export default class LightwalletTransactionBuilder {
                 const rprres = ecc.prepareMlsag(vm, blindSum, 1, 1, /*added */vpInCommits.length, vpBlinds.length, /*end */ nCols.num, nRows, vpInCommits, pSplitCommits, vpBlinds);
                 rv = rprres != null ? 0 : 1;
                 if (0 != rv) {
-                    throw new Error("Failed to prepare mlsag with");
+                    throw new FailedToPrepareMlsag("Failed to prepare mlsag with");
                 }
 
                 vpsk[nRows - 1] = Buffer.from(rprres?.SK!); // reset to returned blindsum? from secp256k1_prepare_mlsag
@@ -1541,7 +1576,7 @@ export default class LightwalletTransactionBuilder {
                 vpsk, vm)
             */
             if (res == null) {
-                throw new Error("Failed to generate mlsag with");
+                throw new FailedToGenerateMlsag("Failed to generate mlsag");
             }
             vKeyImages = Buffer.from(res.KI);
             vDL.set(res.PC, 0);
@@ -1550,7 +1585,7 @@ export default class LightwalletTransactionBuilder {
             // Validate the mlsag
             rv = ecc.verifyMlsag(hashOutputs, nCols.num, nRows, vm, vKeyImages, vDL, vDL.slice(32));
             if (0 != rv) {
-                throw new Error("Failed to generate mlsag on initial generation");
+                throw new FailedToGenerateMlsag("Failed to generate mlsag on initial generation");
             }
 
             txin.scriptData.stack[0] = vKeyImages;
