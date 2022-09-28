@@ -36,11 +36,11 @@ import InvalidChangeAddress from "../models/errors/InvalidChangeAddress";
 import TxAtLeastOneRecipient from "../models/errors/TxAtLeaseOneRecipient";
 import AmountsMustNotBeNegative from "../models/errors/AmountsMustNotBeNegative";
 import RingSizeOutOfRange from "../models/errors/RingSizeOutOfRange";
-import InputsPerSigIsOutOfRange from "../models/errors/InputsPerSigIsOutOfRange";
+import InputsPerSigsIsOutOfRange from "../models/errors/InputsPerSigsOutOfRange";
 import RecipientDataBuildFailed from "../models/errors/RecipientDataBuildFailed";
 import ChangeDataBuildFailed from "../models/errors/ChangeDataBuildFailed";
-import LightWalletAddCTDataFailed from "../models/errors/LightWalletAddCTDataFailed";
-import LightWalletAddOutputsFailed from "../models/errors/LightWalletAddOutputsFailed";
+import AddCTDataFailed from "../models/errors/AddCTDataFailed";
+import AddOutputsFailed from "../models/errors/AddOutputsFailed";
 import TxFeeAndChangeCalcFailed from "../models/errors/TxFeeAndChangeCalcFailed";
 import PedersenCommitFailed from "../models/errors/PedersenCommitFailed";
 import UpdateChangeOutputCommitmentFailed from "../models/errors/UpdateChangeOutputCommitmentFailed";
@@ -60,7 +60,6 @@ import DuplicateIndexFound from "../models/errors/DuplicateIndexFound";
 import FailedToGetCTPointersForOutputType from "../models/errors/FailedToGetCTPointersForOutputType";
 import KeyImagesFailed from "../models/errors/KeyImagesFailed";
 import NoKeyFoundForIndex from "../models/errors/NoKeyFoundForIndex";
-import NoPubKeyFoundForRealOutput from "../models/errors/NoPubKeyFound";
 import NoPubKeyFound from "../models/errors/NoPubKeyFound";
 import FailedToPrepareMlsag from "../models/errors/FailedToPrepareMlsag";
 import PedersenBlindSumFailed from "../models/errors/PedersenBlindSumFailed";
@@ -229,7 +228,7 @@ export default class LightwalletTransactionBuilder {
 
         // Check inputspersig
         if (nInputsPerSig < 1 || nInputsPerSig > 32) {
-            throw new InputsPerSigIsOutOfRange("Num inputs per signature out of range.");
+            throw new InputsPerSigsIsOutOfRange("Num inputs per signature out of range.");
         }
 
         // Build the recipient data
@@ -334,12 +333,12 @@ export default class LightwalletTransactionBuilder {
 
         // Add CT DATA to txNew
         if (!this.lightWalletAddCTData(txNew, vecSend, nFeeRetRef, nValueOutPlainRef, nChangePosInOutRef, nSubtractFeeFromAmount)) {
-            throw new LightWalletAddCTDataFailed("Failed LightWalletAddCTData");
+            throw new AddCTDataFailed("Failed LightWalletAddCTData");
         }
 
         // Add in real outputs
         if (!this.lightWalletAddRealOutputs(txNew, vSelectedTxes, vInputBlinds, vSecretColumns, vMI)) {
-            throw new LightWalletAddOutputsFailed("Failed lightWalletAddRealOutputs");
+            throw new AddOutputsFailed("Failed lightWalletAddRealOutputs");
         }
 
         // Add in dummy outputs
