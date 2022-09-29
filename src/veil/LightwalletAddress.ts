@@ -157,13 +157,16 @@ export default class LightwalletAddress {
         return this._transactionsCache;
     }
 
-    public getBalance = async () => {
+    public getBalance = async (substractTxes: Array<string> = []) => {
         const res = await this.getUnspentOutputs();
         if (res.length == 0) return 0;
 
         // compute balance
         let amount = 0;
-        res.forEach(utx => amount += utx.getAmount(this._lwAccount.getWallet().getChainParams()));
+        res.forEach(utx => {
+            if (substractTxes.indexOf(utx.getId() ?? "") !== -1) return;
+            amount += utx.getAmount(this._lwAccount.getWallet().getChainParams());
+        });
         return amount;
     }
 

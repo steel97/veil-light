@@ -44,16 +44,16 @@ export default class LightwalletAccount {
         return this._vDefaultAccount;
     }
 
-    public async getBalanceRaw(input: Array<LightwalletAddress>) {
+    public async getBalanceRaw(input: Array<LightwalletAddress>, substractTxes: Array<string> = []) {
         let amount = 0;
         for (const addr of input)
-            amount += await addr.getBalance();
+            amount += await addr.getBalance(substractTxes);
 
         return amount;
     }
 
-    public async getBalanceFormatted(input: Array<LightwalletAddress>) {
-        const res = await this.getBalanceRaw(input);
+    public async getBalanceFormatted(input: Array<LightwalletAddress>, substractTxes: Array<string> = []) {
+        const res = await this.getBalanceRaw(input, substractTxes);
         return res.toFixed(this._wallet.getChainParams().COIN_DIGITS);
     }
 
