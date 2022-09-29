@@ -139,6 +139,7 @@ export default class LightwalletTransactionBuilder {
     private static buildLightWalletRingCTTransaction(chainParams: Chainparams, address: LightwalletAddress, nValueOut: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, ringSize = 5) {
         const response: BuildTransactionResult = {
             fee: 0,
+            amountSent: 0,
             txid: undefined
         };
 
@@ -458,6 +459,7 @@ export default class LightwalletTransactionBuilder {
 
         const txId = txNew.encode().toString("hex");//EncodeHexTx(*txRef);
         response.txid = txId;
+        response.amountSent = nValueOut;
         return response;
     }
 
@@ -480,7 +482,7 @@ export default class LightwalletTransactionBuilder {
         for (const tx of vSpendableTx) {
             nSum += Number(tx.getRingCtOut()?.getAmount());
 
-            if ((nValueOut + Number(chainParams.CENT)) <= nSum) {
+            if ((nValueOut + Number(chainParams.CENT)) < nSum) {
                 return true;
             }
         }
