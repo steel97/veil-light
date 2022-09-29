@@ -480,7 +480,7 @@ export default class LightwalletTransactionBuilder {
         for (const tx of vSpendableTx) {
             nSum += Number(tx.getRingCtOut()?.getAmount());
 
-            if ((nValueOut + Number(chainParams.CENT)) < nSum) {
+            if ((nValueOut + Number(chainParams.CENT)) <= nSum) {
                 return true;
             }
         }
