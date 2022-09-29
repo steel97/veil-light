@@ -286,11 +286,19 @@ export default class LightwalletTransactionBuilder {
         const vSelectedTxes = ssres.vSpendTheseTx;
         let nTempChange = ssres.nChange;
 
+        // TODO, have the server give us the feerate per Byte, when asking for txes
+        // TODO, for now set to CENT
+        nFeeNeeded = Number(chainParams.CENT);
 
         // Build the change recipient
-        const nChange = nTempChange;//CAmount        
-        if (!this.buildChangeData(chainParams, vecSend, nChangePosInOutRef, nFeeRetRef, nChange, destChange)) {//coincontrol.destChange(addrChange), errorMsg
-            throw new ChangeDataBuildFailed("Failed BuildChangeData");
+        // Do not add change if we spending all balance
+        let overallSpendableBalance = 0;
+        vSpendableTx.forEach(tx => overallSpendableBalance += tx.getAmount(chainParams));
+        if (nValueOut + nFeeNeeded < overallSpendableBalance) {
+            const nChange = nTempChange;//CAmount        
+            if (!this.buildChangeData(chainParams, vecSend, nChangePosInOutRef, nFeeRetRef, nChange, destChange)) {//coincontrol.destChange(addrChange), errorMsg
+                throw new ChangeDataBuildFailed("Failed BuildChangeData");
+            }
         }
 
         const nRemainder = vSelectedTxes.length % nInputsPerSig;
@@ -348,9 +356,6 @@ export default class LightwalletTransactionBuilder {
         // Get the amout of bytes
         nBytes = getVirtualTransactionSize(txNew);
 
-        // TODO, have the server give us the feerate per Byte, when asking for txes
-        // TODO, for now set to CENT
-        nFeeNeeded = Number(chainParams.CENT);
 
         if (nFeeRetRef.num >= nFeeNeeded) {
             // Reduce fee to only the needed amount if possible. This
