@@ -117,7 +117,7 @@ export default class LightwalletAddress {
         return this._transactionsCache;
     }
 
-    public getUnspentOutputs = async () => {
+    public getUnspentOutputs = async (ignoreMemPoolSpend = false) => {
         if (this._transactionsCache == null) {
             await this.fetchTxes();
             if (this._transactionsCache == null) return [];
@@ -127,7 +127,7 @@ export default class LightwalletAddress {
         let i = 0;
         this._transactionsCache.forEach(tx => {
             const txInfo = this._keyImageCache?.find(a => a.txid == tx.getId());
-            if (!(txInfo?.spent ?? true) && !(txInfo?.spentinmempool ?? false)) {
+            if (!(txInfo?.spent ?? true) && (!(txInfo?.spentinmempool ?? false) || ignoreMemPoolSpend)) {
                 res.push(tx);
             }
             i++;
@@ -135,6 +135,7 @@ export default class LightwalletAddress {
 
         return res;
     }
+
     public getSpentOutputsInMemoryPool = async () => {
         if (this._transactionsCache == null) {
             await this.fetchTxes();

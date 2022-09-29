@@ -11,7 +11,8 @@ import CWatchOnlyTx from './veil/tx/CWatchOnlyTx';
 import CWatchOnlyTxWithIndex from './veil/tx/CWatchOnlyTxWithIndex';
 import PublishTransactionResult from './models/PublishTransactionResult';
 import RpcRequester from './veil/RpcRequester';
-import { GetBlockchainInfo } from './models/rpc/node/GetBlockchainInfo'
+import { GetBlockchainInfo } from './models/rpc/node/GetBlockchainInfo';
+import { GetRawMempool } from './models/rpc/node/GetRawMempool';
 import { mainNetParams, Chainparams } from './veil/Chainparams';
 import BuildTransactionResult from './models/BuildTransactionResult';
 // exceptions
@@ -63,6 +64,7 @@ export type { BuildTransactionResult };
 export { RpcRequester };
 export type { PublishTransactionResult };
 export type { GetBlockchainInfo };
+export type { GetRawMempool };
 // exceptions
 export type { AddCTDataFailed };
 export type { AddOutputsFailed };
