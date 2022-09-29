@@ -293,7 +293,7 @@ export default class LightwalletTransactionBuilder {
         // Build the change recipient
         // Do not add change if we spending all balance
         let overallSpendableBalance = 0;
-        vSpendableTx.forEach(tx => overallSpendableBalance += tx.getAmount(chainParams));
+        vSpendableTx.forEach(tx => overallSpendableBalance += Number(tx.getRingCtOut()!.getAmount()));
         if (nValueOut + nFeeNeeded < overallSpendableBalance) {
             const nChange = nTempChange;//CAmount        
             if (!this.buildChangeData(chainParams, vecSend, nChangePosInOutRef, nFeeRetRef, nChange, destChange)) {//coincontrol.destChange(addrChange), errorMsg
