@@ -186,14 +186,14 @@ export default class LightwalletAddress {
     public getScanKey = () => this._addressKey.deriveHardened(1);
     public getSpendKey = () => this._addressKey.deriveHardened(2);
 
-    public async buildTransaction(amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, ringSize = 5) {
+    public async buildTransaction(amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, strategyUseSingleTxPriority: boolean, ringSize = 5) {
         const chainParams = this._lwAccount.getWallet().getChainParams();
         const vDummyOutputs = await Lightwallet.getAnonOutputs(vSpendableTx.length, ringSize);
         return LightwalletTransactionBuilder.buildLightWalletTransaction(
             chainParams, this, parseFloat(amount.toFixed(chainParams.COIN_DIGITS)),
             recipientAddress,
             vSpendableTx,
-            vDummyOutputs);
+            vDummyOutputs, strategyUseSingleTxPriority, ringSize);
     }
 
     public getStringAddress() {

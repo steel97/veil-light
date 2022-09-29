@@ -110,7 +110,7 @@ export default class LightwalletTransactionBuilder {
         return res;
     }
     // returns txHex
-    public static buildLightWalletTransaction(chainParams: Chainparams, address: LightwalletAddress, amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>) {
+    public static buildLightWalletTransaction(chainParams: Chainparams, address: LightwalletAddress, amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, strategyUseSingleTxPriority: boolean, ringSize = 5) {
         const vAnonTxes = Array<CWatchOnlyTxWithIndex>();
         const vStealthTxes = Array<CWatchOnlyTxWithIndex>();
 
@@ -125,7 +125,7 @@ export default class LightwalletTransactionBuilder {
         }
 
         if (vAnonTxes.length > 0) {
-            return this.buildLightWalletRingCTTransaction(chainParams, address, amount * Number(chainParams.COIN), recipientAddress, vAnonTxes, vDummyOutputs);
+            return this.buildLightWalletRingCTTransaction(chainParams, address, amount * Number(chainParams.COIN), recipientAddress, vAnonTxes, vDummyOutputs, strategyUseSingleTxPriority, ringSize);
         } else if (vStealthTxes.length > 0) {
             // return BuildLightWalletStealthTransaction(args, vStealthTxes, txHex, errorMsg);
             throw new UnimplementedException("Not implemented (yes?)");
@@ -136,7 +136,7 @@ export default class LightwalletTransactionBuilder {
     }
 
     // returns txHex
-    private static buildLightWalletRingCTTransaction(chainParams: Chainparams, address: LightwalletAddress, nValueOut: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, ringSize = 5) {
+    private static buildLightWalletRingCTTransaction(chainParams: Chainparams, address: LightwalletAddress, nValueOut: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, strategyUseSingleTxPriority: boolean, ringSize: number) {
         const response: BuildTransactionResult = {
             fee: 0,
             amountSent: 0,
@@ -282,7 +282,7 @@ export default class LightwalletTransactionBuilder {
         nValueIn = 0;
 
         // Select tx to spend
-        const ssres = this.selectSpendableTxForValue(nValueOut, vectorTxesWithAmountSet);
+        const ssres = this.selectSpendableTxForValue(nValueOut, vectorTxesWithAmountSet, strategyUseSingleTxPriority);
         const vSelectedTxes = ssres.vSpendTheseTx;
         let nTempChange = ssres.nChange;
 
@@ -735,7 +735,7 @@ export default class LightwalletTransactionBuilder {
         return prefix;
     }
 
-    private static selectSpendableTxForValue(nValueOut: number, vSpendableTx: Array<CWatchOnlyTxWithIndex>) {//bool
+    private static selectSpendableTxForValue(nValueOut: number, vSpendableTx: Array<CWatchOnlyTxWithIndex>, strategyUseSingleTxPriority: boolean) {//bool
         const res: SpendableTxForValue = {
             vSpendTheseTx: [], // vSpendTheseTx
             nChange: 0
@@ -751,8 +751,6 @@ export default class LightwalletTransactionBuilder {
 
         // TODO - this can be improved, but works for now
 
-        const strategyUseSinglePriority = false;
-
         for (const tx of vSpendableTx) {
             //LogPrintf("tx amounts %d, ", tx.nAmount);
             //console.log(`tx amounts ${tx.getRingCtOut()?.getAmount()!}`);
@@ -767,7 +765,7 @@ export default class LightwalletTransactionBuilder {
             }
         }
 
-        if (!fSingleInput || !strategyUseSinglePriority) {
+        if (!fSingleInput || !strategyUseSingleTxPriority) {
             res.vSpendTheseTx = [];
             // We can use a single input for this transaction
             let currentSelected = 0;
@@ -784,7 +782,7 @@ export default class LightwalletTransactionBuilder {
 
         //LogPrintf("nValueOut %d, ", nValueOut);
 
-        if (fSingleInput && !(fMultipleInput && !strategyUseSinglePriority)) {
+        if (fSingleInput && !(fMultipleInput && !strategyUseSingleTxPriority)) {
             res.nChange = tempsingleamountchange;
         } else if (fMultipleInput) {
             res.nChange = tempmultipleamountchange;
