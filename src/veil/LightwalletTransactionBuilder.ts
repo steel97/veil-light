@@ -755,7 +755,7 @@ export default class LightwalletTransactionBuilder {
             //console.log(`tx amounts ${tx.getRingCtOut()?.getAmount()!}`);
             if (tx.getRingCtOut()?.getAmount()! > nValueOut) {
                 tempsingleamountchange = Number(tx.getRingCtOut()?.getAmount()!) - nValueOut;
-                if (tempsingleamountchange < currentMinimumChange || currentMinimumChange == 0) {
+                if ((tempsingleamountchange < currentMinimumChange || currentMinimumChange == 0) && tempsingleamountchange > 0) {
                     res.vSpendTheseTx = [];
                     fSingleInput = true;
                     res.vSpendTheseTx.push(tx);
