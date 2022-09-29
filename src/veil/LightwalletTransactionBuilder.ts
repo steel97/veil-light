@@ -750,6 +750,9 @@ export default class LightwalletTransactionBuilder {
 
 
         // TODO - this can be improved, but works for now
+
+        const strategyUseSinglePriority = false;
+
         for (const tx of vSpendableTx) {
             //LogPrintf("tx amounts %d, ", tx.nAmount);
             //console.log(`tx amounts ${tx.getRingCtOut()?.getAmount()!}`);
@@ -764,7 +767,7 @@ export default class LightwalletTransactionBuilder {
             }
         }
 
-        if (!fSingleInput) {
+        if (!fSingleInput || !strategyUseSinglePriority) {
             res.vSpendTheseTx = [];
             // We can use a single input for this transaction
             let currentSelected = 0;
@@ -781,7 +784,7 @@ export default class LightwalletTransactionBuilder {
 
         //LogPrintf("nValueOut %d, ", nValueOut);
 
-        if (fSingleInput) {
+        if (fSingleInput && !(fMultipleInput && !strategyUseSinglePriority)) {
             res.nChange = tempsingleamountchange;
         } else if (fMultipleInput) {
             res.nChange = tempmultipleamountchange;
