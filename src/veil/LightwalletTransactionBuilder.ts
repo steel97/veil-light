@@ -125,7 +125,7 @@ export default class LightwalletTransactionBuilder {
         }
 
         if (vAnonTxes.length > 0) {
-            return this.buildLightWalletRingCTTransaction(chainParams, address, amount * Number(chainParams.COIN), recipientAddress, vAnonTxes, vDummyOutputs, strategyUseSingleTxPriority, ringSize);
+            return this.buildLightWalletRingCTTransaction(chainParams, address, parseInt((parseFloat(amount.toString().replace(",", ".")) * Number(chainParams.COIN)).toFixed(0)), recipientAddress, vAnonTxes, vDummyOutputs, strategyUseSingleTxPriority, ringSize);
         } else if (vStealthTxes.length > 0) {
             // return BuildLightWalletStealthTransaction(args, vStealthTxes, txHex, errorMsg);
             throw new UnimplementedException("Not implemented (yes?)");
