@@ -66,6 +66,7 @@ import PedersenBlindSumFailed from "../models/errors/PedersenBlindSumFailed";
 import FailedToGenerateMlsag from "../models/errors/FailedToGenerateMlsag";
 import BuildTransactionResult from "../models/BuildTransactionResult";
 import UnimplementedException from "../models/errors/UnimplementedException";
+import CVeilRecipient from "./CVeilRecipient";
 
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 
@@ -110,7 +111,7 @@ export default class LightwalletTransactionBuilder {
         return res;
     }
     // returns txHex
-    public static buildLightWalletTransaction(chainParams: Chainparams, address: LightwalletAddress, amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, strategyUseSingleTxPriority: boolean, ringSize = 5) {
+    public static buildLightWalletTransaction(chainParams: Chainparams, address: LightwalletAddress, recipients: Array<CVeilRecipient>, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, strategyUseSingleTxPriority: boolean, ringSize = 5) {
         const vAnonTxes = Array<CWatchOnlyTxWithIndex>();
         const vStealthTxes = Array<CWatchOnlyTxWithIndex>();
 
@@ -125,7 +126,15 @@ export default class LightwalletTransactionBuilder {
         }
 
         if (vAnonTxes.length > 0) {
-            return this.buildLightWalletRingCTTransaction(chainParams, address, parseInt((parseFloat(amount.toString().replace(",", ".")) * Number(chainParams.COIN)).toFixed(0)), recipientAddress, vAnonTxes, vDummyOutputs, strategyUseSingleTxPriority, ringSize);
+            // rebuild recipients
+            const resultingRecipients: Array<CVeilRecipient> = [];
+            for (const rcp of recipients) {
+                resultingRecipients.push({
+                    address: rcp.address,
+                    amount: parseInt((parseFloat(rcp.amount.toString().replace(",", ".")) * Number(chainParams.COIN)).toFixed(0))
+                });
+            }
+            return this.buildLightWalletRingCTTransaction(chainParams, address, resultingRecipients, vAnonTxes, vDummyOutputs, strategyUseSingleTxPriority, ringSize);
         } else if (vStealthTxes.length > 0) {
             // return BuildLightWalletStealthTransaction(args, vStealthTxes, txHex, errorMsg);
             throw new UnimplementedException("Not implemented (yes?)");
@@ -136,7 +145,7 @@ export default class LightwalletTransactionBuilder {
     }
 
     // returns txHex
-    private static buildLightWalletRingCTTransaction(chainParams: Chainparams, address: LightwalletAddress, nValueOut: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, strategyUseSingleTxPriority: boolean, ringSize: number) {
+    private static buildLightWalletRingCTTransaction(chainParams: Chainparams, address: LightwalletAddress, recipients: Array<CVeilRecipient>, vSpendableTx: Array<CWatchOnlyTxWithIndex>, vDummyOutputs: Array<CLightWalletAnonOutputData>, strategyUseSingleTxPriority: boolean, ringSize: number) {
         const response: BuildTransactionResult = {
             fee: 0,
             amountSent: 0,
@@ -152,14 +161,15 @@ export default class LightwalletTransactionBuilder {
         const scan_secret = scanKey.privateKey;
         const spend_pubkey = spendKey.publicKey;
 
-        const destination = this.getTypeOut(recipientAddress);
         const vecSend: Array<CTempRecipient> = [];
-
+        let nValueOut = 0;
         // Build the Output
-        {
+        for (const rcp of recipients) {
+            nValueOut += rcp.amount;
+            const destination = this.getTypeOut(rcp.address);
             const r = new CTempRecipient();
             r.nType = destination?.type;
-            r.setAmount(nValueOut);
+            r.setAmount(rcp.amount);
             r.address = destination;
             if (r.nType == OutputTypes.OUTPUT_STANDARD) {
                 r.fScriptSet = true;

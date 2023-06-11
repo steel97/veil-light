@@ -12,6 +12,7 @@ import Lightwallet from "./Lightwallet";
 import CVeilAddress from "./CVeilAddress";
 import CVeilStealthAddress from "./CVeilStealthAddress";
 import Stealth from "./Stealth";
+import CVeilRecipient from "./CVeilRecipient";
 
 export default class LightwalletAddress {
     private _lwAccount: LightwalletAccount;
@@ -186,12 +187,22 @@ export default class LightwalletAddress {
     public getScanKey = () => this._addressKey.deriveHardened(1);
     public getSpendKey = () => this._addressKey.deriveHardened(2);
 
-    public async buildTransaction(amount: number, recipientAddress: CVeilAddress, vSpendableTx: Array<CWatchOnlyTxWithIndex>, strategyUseSingleTxPriority: boolean, ringSize = 5) {
+    public async buildTransaction(recipients: Array<CVeilRecipient>, vSpendableTx: Array<CWatchOnlyTxWithIndex>, strategyUseSingleTxPriority: boolean, ringSize = 5) {
         const chainParams = this._lwAccount.getWallet().getChainParams();
         const vDummyOutputs = await Lightwallet.getAnonOutputs(vSpendableTx.length, ringSize);
+
+        // rebuild recipients
+        const resultingRecipients: Array<CVeilRecipient> = [];
+        for (const rcp of recipients) {
+            resultingRecipients.push({
+                address: rcp.address,
+                amount: parseFloat(rcp.amount.toFixed(chainParams.COIN_DIGITS))
+            });
+        }
+
         return LightwalletTransactionBuilder.buildLightWalletTransaction(
-            chainParams, this, parseFloat(amount.toFixed(chainParams.COIN_DIGITS)),
-            recipientAddress,
+            chainParams, this,
+            resultingRecipients,
             vSpendableTx,
             vDummyOutputs, strategyUseSingleTxPriority, ringSize);
     }
