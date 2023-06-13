@@ -9,6 +9,7 @@ import LightwalletTransactionBuilder from './veil/LightwalletTransactionBuilder'
 import CLightWalletAnonOutputData from './veil/tx/CLightWalletAnonOutputData';
 import CWatchOnlyTx from './veil/tx/CWatchOnlyTx';
 import CWatchOnlyTxWithIndex from './veil/tx/CWatchOnlyTxWithIndex';
+import CVeilRecipient from './veil/CVeilRecipient';
 import PublishTransactionResult from './models/PublishTransactionResult';
 import RpcRequester from './veil/RpcRequester';
 import { GetBlockchainInfo } from './models/rpc/node/GetBlockchainInfo';
@@ -59,6 +60,7 @@ export { LightwalletTransactionBuilder };
 // lightwallet
 export { Lightwallet, LightwalletAccount, AccountType, LightwalletAddress };
 export { CWatchOnlyTx, CWatchOnlyTxWithIndex, CLightWalletAnonOutputData };
+export type { CVeilRecipient };
 export type { BuildTransactionResult };
 // rpc
 export { RpcRequester };
